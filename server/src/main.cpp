@@ -1,9 +1,16 @@
-#include <iostream>
 #include "main.hpp"
 
+#include <iostream>
+
+#include "socket_terminal_server.hpp"
+
 int main(int argc, char *argv[]) {
+  SocketTerminalServer *server =
+      new SocketTerminalServer("127.0.0.1", 8888, 10);
 
-    std::cout << "Hello World" << std::endl;
+  while (1) {
+  }
 
-    return 0;
+  delete server;
+  return EXIT_SUCCESS;
 }
