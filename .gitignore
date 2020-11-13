@@ -7,6 +7,9 @@
 *.o
 *.obj
 
+# Compiled object directory
+build
+
 # Precompiled Headers
 *.gch
 *.pch
@@ -30,3 +33,6 @@
 *.exe
 *.out
 *.app
+
+# VSCode Stuff
+*.VSCode
