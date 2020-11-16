@@ -25,6 +25,10 @@ SocketTerminalServer::SocketTerminalServer(std::string server_ip,
   NetworkUtils::bind_to_address(this->server_socket_handler, server_address);
   NetworkUtils::listen_on_socket(this->server_socket_handler,
                                  this->max_connections);
+  NetworkUtils::set_non_blocking(this->server_socket_handler);
+  bool kill = true;
+  setsockopt(this->server_socket_handler, SOL_SOCKET, SO_REUSEADDR, &kill,
+             sizeof(int));
 }
 
 ClientSession *SocketTerminalServer::check_for_connection() {
@@ -35,14 +39,8 @@ ClientSession *SocketTerminalServer::check_for_connection() {
       accept(this->server_socket_handler, (struct sockaddr *)&in_address,
              &address_len);
   if (client_socket < 0) {
-    switch (errno) {
-      case EWOULDBLOCK:
-        break;
+    perror("accept()");
 
-      default:
-        perror("accept()");
-        break;
-    }
     return NULL;
   }
 
@@ -52,6 +50,7 @@ ClientSession *SocketTerminalServer::check_for_connection() {
   ClientSession *client = new ClientSession(in_address, client_socket);
   this->live_connections.push_back(client);
   client->start_session();
+
   return client;
 }
 
@@ -60,7 +59,7 @@ void SocketTerminalServer::close_dead_sessions() {
       this->live_connections.begin();
 
   while (conn_iterator != this->live_connections.end()) {
-    if (!(*conn_iterator)->is_session_alive()) {
+    if (!(*conn_iterator)->is_session_status_alive()) {
       (*conn_iterator)->end_session();
       conn_iterator = this->live_connections.erase(conn_iterator);
     }

@@ -1,8 +1,11 @@
 #include "client_session.hpp"
 
 #include <string.h>
+#include <sys/select.h>
 
 #include <vector>
+
+#include "network_utils.hpp"
 
 ClientSession::ClientSession(struct sockaddr_in in_address,
                              const int client_socket) {
@@ -23,14 +26,13 @@ void ClientSession::start_session() {
   }
 
   // Wait till the sesion fully starts to sync
-  while (!this->is_session_alive())
+  while (!this->is_session_status_alive())
     ;
 }
 
 void ClientSession::end_session() {
   int pt_status = 0;
-  std::cout << "Finishing session for: " << this->repr_ip
-            << std::endl;
+  std::cout << "Finishing session for: " << this->repr_ip << std::endl;
 
   pthread_mutex_destroy(&this->mutex);
   pthread_mutex_lock(&this->mutex);
@@ -45,7 +47,21 @@ void ClientSession::end_session() {
   }
 }
 
-bool ClientSession::is_session_alive() { return this->session_alive; }
+bool ClientSession::is_session_status_alive() { return this->session_alive; }
+
+void ClientSession::terminate_session() {
+  if (this->session_alive) {
+    pthread_mutex_lock(&this->mutex);
+    this->session_alive = false;
+    pthread_mutex_unlock(&this->mutex);
+  }
+}
+
+void ClientSession::set_sesion_status_alive() {
+  pthread_mutex_lock(&this->mutex);
+  this->session_alive = true;
+  pthread_mutex_unlock(&this->mutex);
+}
 
 void *ClientSession::thread_wrapper(void *context) {
   ClientSession *_context = static_cast<ClientSession *>(context);
@@ -58,46 +74,66 @@ void *ClientSession::thread_wrapper(void *context) {
 }
 
 void ClientSession::connection_thread() {
-  pthread_mutex_lock(&this->mutex);
-  this->session_alive = true;
-  pthread_mutex_unlock(&this->mutex);
+  this->set_sesion_status_alive();
 
   std::string recv_buffer;
 
   while (1) {
-    std::vector<char> buffer(this->max_packet_size);
-    pthread_mutex_lock(&this->mutex);
-    if (!this->session_alive) {
+    if (!this->is_session_status_alive()) {
       std::cout << "Session forced to close for: " << this->repr_ip
                 << std::endl;
       break;
     }
-    pthread_mutex_unlock(&this->mutex);
 
-    int n_recv = recv(this->client_socket, &buffer[0], buffer.size(), 0);
-    if (n_recv <= 0) {
-      perror("recv()");
-      break;
-    }
+    std::vector<char> buffer(this->max_packet_size);
 
-    std::cout << "Msg.(" << n_recv << ") from: " << this->repr_ip << ": ";
-    for (const auto &symbol : buffer) {
-      if (symbol == 0) continue;
-      if (symbol == 27) {
-        std::cout << std::endl;
+    struct timeval timeout = {this->no_message_sec};
+    fd_set read_fds;
+    FD_ZERO(&read_fds);
+    FD_SET(this->client_socket, &read_fds);
+    switch (select(FD_SETSIZE, &read_fds, NULL, NULL, &timeout)) {
+      case -1:
+        perror("select()");
+        exit(EXIT_FAILURE);
+        break;
+
+      case 0:
+        std::cout << "No message (" << this->no_message_sec << ") from: "
+                  << this->repr_ip << std::endl;
+        NetworkUtils::close_connection(this->client_socket);
         return;
-      };
-      if (isprint(symbol)) {
-        recv_buffer.push_back(symbol);
-        std::cout << symbol;
-      } else {
-        std::cout << "[" << static_cast<int>(symbol) << "]";
-      }
+        break;
     }
-    std::cout << std::endl;
+
+    if (FD_ISSET(this->client_socket, &read_fds)) {
+      int n_recv = recv(this->client_socket, &buffer[0], buffer.size(), 0);
+      if (n_recv <= 0) {
+        perror("recv()");
+        break;
+      }
+
+      std::cout << "Msg.(" << n_recv << ") from: " << this->repr_ip << ": ";
+      for (const auto &symbol : buffer) {
+        if (symbol == 0) continue;
+        if (symbol == 27) {
+          std::cout << std::endl;
+          return;
+        };
+        if (symbol == 8) {
+          // response_stream = "ALIBABA";
+        }
+        if (isprint(symbol)) {
+          recv_buffer.push_back(symbol);
+          std::cout << symbol;
+        } else {
+          std::cout << "[" << static_cast<int>(symbol) << "]";
+        }
+      }
+      std::cout << std::endl;
+    }
   }
 }
 
-ClientSession::~ClientSession() {  // neet to add exit in thread flag
+ClientSession::~ClientSession() {
   this->end_session();
 }

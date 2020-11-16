@@ -7,6 +7,11 @@
 #include "client_session.hpp"
 #include "socket_terminal_server.hpp"
 
+
+// TODO Standarize logs
+// TODO Write to client
+// TODo Parser
+
 int main(int argc, char *argv[]) {
   SocketTerminalServer *server =
       new SocketTerminalServer("127.0.0.1", 8888, 10);
