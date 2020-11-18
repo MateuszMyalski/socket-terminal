@@ -79,3 +79,9 @@ bool NetworkUtils::descriptor_must_valid(const int descriptor) {
     return true;
   }
 }
+
+void NetworkUtils::set_address_reuse(const int socket_handler) {
+  NetworkUtils::descriptor_must_valid(socket_handler);
+  int option = true;
+  setsockopt(socket_handler, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int));
+}

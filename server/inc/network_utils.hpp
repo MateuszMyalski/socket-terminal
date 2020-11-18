@@ -20,4 +20,5 @@ class NetworkUtils {
                                unsigned short max_connections);
   static void set_non_blocking(const int socket_handler);
   static void close_connection(const int socket_handler);
+  static void set_address_reuse(const int socket_handler);
 };

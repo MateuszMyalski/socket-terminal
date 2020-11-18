@@ -3,15 +3,24 @@
 #include <string.h>
 #include <sys/socket.h>
 
+#include <sstream>
+
+#include "logger.hpp"
 #include "network_utils.hpp"
 
 SocketTerminalServer::SocketTerminalServer(std::string server_ip,
                                            unsigned short server_port,
                                            unsigned short max_connections) {
-  std::cout << "Server ip: " << server_ip << std::endl;
-  std::cout << "Server port: " << server_port << std::endl;
-  std::cout << "Server max connection keep alive: " << max_connections
-            << std::endl;
+  std::stringstream info;
+  info << "Hosted on IP: " << server_ip;
+  Logger::log("server", info.str(), RED);
+  info.str("");
+  info << "Running on port: " << server_port;
+  Logger::log("server", info.str(), RED);
+  info.str("");
+  info << "Max connection: " << max_connections;
+  Logger::log("server", info.str(), RED);
+  info.str("");
 
   this->server_ip = server_ip;
   this->server_port = server_port;
@@ -26,26 +35,26 @@ SocketTerminalServer::SocketTerminalServer(std::string server_ip,
   NetworkUtils::listen_on_socket(this->server_socket_handler,
                                  this->max_connections);
   NetworkUtils::set_non_blocking(this->server_socket_handler);
-  bool kill = true;
-  setsockopt(this->server_socket_handler, SOL_SOCKET, SO_REUSEADDR, &kill,
-             sizeof(int));
+  NetworkUtils::set_address_reuse(this->server_socket_handler);
 }
 
 ClientSession *SocketTerminalServer::check_for_connection() {
   struct sockaddr_in in_address = {0};
   socklen_t address_len = sizeof(in_address);
-  // TODO add reconnect
+  
   const int client_socket =
       accept(this->server_socket_handler, (struct sockaddr *)&in_address,
              &address_len);
-  if (client_socket < 0) {
-    perror("accept()");
 
+  if (client_socket < 0 && errno == EWOULDBLOCK) {
+    return NULL;
+  }
+  if (client_socket && errno != EWOULDBLOCK) {
+    perror("accept()");
     return NULL;
   }
 
-  std::cout << "Incoming connection: " << inet_ntoa(in_address.sin_addr)
-            << std::endl;
+  Logger::log(&in_address, "Incoming connection", YELLOW);
 
   ClientSession *client = new ClientSession(in_address, client_socket);
   this->live_connections.push_back(client);
