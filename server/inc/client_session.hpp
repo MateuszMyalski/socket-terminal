@@ -22,7 +22,7 @@ class ClientSession {
 
  public:
   ClientSession(struct sockaddr_in in_address, const int client_socket);
-  ~ClientSession();
+  virtual ~ClientSession() {}
 
   bool is_session_status_alive();
   void thread_wrapper();

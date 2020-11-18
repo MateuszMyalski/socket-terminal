@@ -25,11 +25,9 @@ void ClientSession::start_session() {
 
 void ClientSession::end_session() {
   Logger::log(&this->in_address, "Closing session.", YELLOW);
-
   if (this->session_alive)
     this->session_alive = false;
-  else
-    return;
+
   if (this->client_thread.joinable()) this->client_thread.join();
 }
 
@@ -82,4 +80,3 @@ void ClientSession::thread_wrapper() {
   this->session_alive = false;
 }
 
-ClientSession::~ClientSession() { this->end_session(); }

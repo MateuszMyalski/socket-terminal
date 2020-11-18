@@ -64,15 +64,16 @@ ClientSession *SocketTerminalServer::check_for_connection() {
 }
 
 void SocketTerminalServer::close_dead_sessions() {
-  std::list<ClientSession *>::iterator conn_iterator =
+  std::list<ClientSession *>::iterator conn_it =
       this->live_connections.begin();
 
-  while (conn_iterator != this->live_connections.end()) {
-    if (!(*conn_iterator)->is_session_status_alive()) {
-      (*conn_iterator)->end_session();
-      conn_iterator = this->live_connections.erase(conn_iterator);
+  while (conn_it != this->live_connections.end()) {
+    if (!(*conn_it)->is_session_status_alive()) {
+      (*conn_it)->end_session();
+      delete (*conn_it);
+      conn_it = this->live_connections.erase(conn_it);
     }
-    conn_iterator++;
+    conn_it++;
   }
 }
 
