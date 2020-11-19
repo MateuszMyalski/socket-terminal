@@ -8,35 +8,24 @@
 #include "logger.hpp"
 #include "network_utils.hpp"
 
-SocketTerminalServer::SocketTerminalServer(
-    const std::string &server_ip, unsigned short server_port,
-    unsigned short max_connections, CommandDispacher *command_dispacher) {
-  std::stringstream info;
-  info << "Hosted on IP: " << server_ip;
-  Logger::log("server", info.str(), RED);
-  info.str("");
-  info << "Running on port: " << server_port;
-  Logger::log("server", info.str(), RED);
-  info.str("");
-  info << "Max connection: " << max_connections;
-  Logger::log("server", info.str(), RED);
-  info.str("");
-
-  this->server_ip = server_ip;
-  this->server_port = server_port;
-  this->max_connections = max_connections;
-  this->command_dispacher = command_dispacher;
-
+SocketTerminalServer::SocketTerminalServer(const std::string &ip,
+                                           unsigned short port,
+                                           unsigned short max_connections,
+                                           CommandDispacher *command_dispacher)
+    : ip_(ip),
+      port_(port),
+      max_conn_(max_connections),
+      cmd_disp_(command_dispacher) {
+  /* Server set up */
   struct sockaddr_in server_address =
-      NetworkUtils::generate_address(this->server_ip, this->server_port);
+      NetworkUtils::generate_address(ip_, port_);
+  server_socket_ = NetworkUtils::create_socket();
 
-  this->server_socket_handler = NetworkUtils::create_socket();
-
-  NetworkUtils::bind_to_address(this->server_socket_handler, server_address);
-  NetworkUtils::listen_on_socket(this->server_socket_handler,
-                                 this->max_connections);
-  NetworkUtils::set_non_blocking(this->server_socket_handler);
-  NetworkUtils::set_address_reuse(this->server_socket_handler);
+  /* Server parameters */
+  NetworkUtils::bind_to_address(server_socket_, server_address);
+  NetworkUtils::listen_on_socket(server_socket_, max_conn_);
+  NetworkUtils::set_non_blocking(server_socket_);
+  NetworkUtils::set_address_reuse(server_socket_);
 }
 
 ClientSession *SocketTerminalServer::check_for_connection() {
@@ -44,45 +33,46 @@ ClientSession *SocketTerminalServer::check_for_connection() {
   socklen_t address_len = sizeof(in_address);
 
   const int client_socket =
-      accept(this->server_socket_handler, (struct sockaddr *)&in_address,
-             &address_len);
-
-  if (client_socket < 0 && errno == EWOULDBLOCK) {
-    return NULL;
-  }
-  if (client_socket && errno != EWOULDBLOCK) {
+      accept(server_socket_, (struct sockaddr *)&in_address, &address_len);
+  if (client_socket == 0 && errno != EWOULDBLOCK) {
     perror("accept()");
     return NULL;
   }
 
-  Logger::log(&in_address, "Incoming connection", YELLOW);
+  /* Connection not established in no polling time */
+  if (client_socket < 0 && errno == EWOULDBLOCK) {
+    return NULL;
+  }
 
+  /* Create session for new connection */
+  Logger::log(name, "Incoming connection", YELLOW);
   ClientSession *client =
-      new ClientSession(in_address, client_socket, this->command_dispacher);
-  this->live_connections.push_back(client);
+      new ClientSession(in_address, client_socket, cmd_disp_);
+  live_conn_.push_back(client);
   client->start_session();
 
   return client;
 }
 
 void SocketTerminalServer::close_dead_sessions() {
-  std::list<ClientSession *>::iterator conn_it = this->live_connections.begin();
+  std::list<ClientSession *>::iterator conn_it = live_conn_.begin();
 
-  while (conn_it != this->live_connections.end()) {
+  /* Iterate through tracked session and look for dead session */
+  while (conn_it != live_conn_.end()) {
     if (!(*conn_it)->is_session_status_alive()) {
       (*conn_it)->end_session();
       delete (*conn_it);
-      conn_it = this->live_connections.erase(conn_it);
+      conn_it = live_conn_.erase(conn_it);
     }
     conn_it++;
   }
 }
 
 unsigned short SocketTerminalServer::get_live_connections() {
-  return this->live_connections.size();
+  return live_conn_.size();
 }
 
 SocketTerminalServer::~SocketTerminalServer() {
   this->close_dead_sessions();
-  shutdown(this->server_socket_handler, SHUT_RDWR);
+  shutdown(server_socket_, SHUT_RDWR);
 }

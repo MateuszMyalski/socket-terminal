@@ -9,17 +9,19 @@
 
 class SocketTerminalServer {
  private:
-  std::string server_ip;
-  unsigned short server_port;
-  unsigned short max_connections;
+  std::string ip_;
+  unsigned short port_;
+  unsigned short max_conn_;
 
-  int server_socket_handler;
-  std::list<ClientSession *> live_connections;
+  int server_socket_;
+  std::list<ClientSession *> live_conn_;
 
-  CommandDispacher *command_dispacher;
+  CommandDispacher *cmd_disp_;
 
  public:
-  SocketTerminalServer(const std::string &server_ip, unsigned short server_port,
+  std::string name = "server";
+
+  SocketTerminalServer(const std::string &ip, unsigned short port,
                        unsigned short max_connections,
                        CommandDispacher *command_dispacher);
   ~SocketTerminalServer();

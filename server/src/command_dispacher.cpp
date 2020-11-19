@@ -22,20 +22,21 @@ std::string &rtrim(std::string &str) {
 
 void CommandDispacher::register_command(const std::string &name,
                                         Command *command) {
-  CommandMap::const_iterator cmd_pair = this->registered_commands.find(name);
-  if (cmd_pair != this->registered_commands.end()) {
+  CommandMap::const_iterator cmd_pair = registered_cmds_.find(name);
+  if (cmd_pair != registered_cmds_.end()) {
     // Command already registered
   } else {
-    registered_commands[name] = command;
+    registered_cmds_[name] = command;
   }
 }
+
 void CommandDispacher::dispatch(std::stringstream *out_stream,
                                 const std::vector<std::string> &args) {
   if (args.empty()) return;
 
-  CommandMap::const_iterator cmd_pair = this->registered_commands.find(args[0]);
+  CommandMap::const_iterator cmd_pair = registered_cmds_.find(args[0]);
 
-  if (cmd_pair == this->registered_commands.end()) {
+  if (cmd_pair == registered_cmds_.end()) {
     Logger::log("server", args[0] + ": command not found.", YELLOW);
   } else {
     out_stream->str("");

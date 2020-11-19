@@ -11,23 +11,22 @@
 class ClientSession {
  private:
   // Client variables
-  size_t max_packet_size = 10;  // 1024;
-  struct sockaddr_in in_address;
-  std::string repr_ip;
-  int client_socket;
+  size_t packet_size_ = 10;  // 1024;
+  struct sockaddr_in in_addr_;
+  int client_socket_;
 
   // Session variables
-  volatile bool session_alive = false;
-  std::thread client_thread;
-  long no_message_sec = 15;
+  volatile bool sess_alive_ = false;
+  std::thread client_thread_;
+  long no_msg_sec_ = 15;
 
   // Querry parsing variables
-  CommandDispacher *command_dispacher;
+  CommandDispacher *cmd_disp_;
   std::string prompt = "client> ";
   
 
  public:
-  ClientSession(struct sockaddr_in in_address, const int client_socket,
+  ClientSession(struct sockaddr_in in_addr, const int client_socket,
                 CommandDispacher *command_dispacher);
   virtual ~ClientSession() {}
 

@@ -14,6 +14,6 @@ class CommandDispacher {
   void dispatch(std::stringstream *out_stream, const std::vector<std::string> &args);
 
  private:
-  CommandMap registered_commands;
+  CommandMap registered_cmds_;
   const std::string WHITESPACE = " \t\f\v";
 };
