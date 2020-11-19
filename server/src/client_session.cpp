@@ -34,10 +34,9 @@ void ClientSession::end_session() {
 bool ClientSession::is_session_status_alive() { return sess_alive_; }
 
 void ClientSession::thread_wrapper() {
-  /* Prepare set fo select */
-  fd_set read_fds;
-  FD_ZERO(&read_fds);
-  FD_SET(client_socket_, &read_fds);
+  /* Waring before timeout logic */
+  bool no_msg_warn = true;
+  if (no_msg_sec_ <= no_msg_warn_before_) no_msg_warn = false;
 
   /* Query binder */
   std::string querry;
@@ -45,10 +44,14 @@ void ClientSession::thread_wrapper() {
 
   /* Thread main loop */
   while (sess_alive_) {
-    struct timeval timeout = {no_msg_sec_};
-    std::vector<char> buffer(packet_size_);
-
     /* Set timeout and wait for incoming data */
+    struct timeval timeout = {no_msg_warn ? (no_msg_sec_ - no_msg_warn_before_)
+                                          : no_msg_warn_before_};
+    std::vector<char> buffer(packet_size_);
+    fd_set read_fds;
+    FD_ZERO(&read_fds);
+    FD_SET(client_socket_, &read_fds);
+
     const int select_status =
         select(FD_SETSIZE, &read_fds, NULL, NULL, &timeout);
 
@@ -56,13 +59,23 @@ void ClientSession::thread_wrapper() {
       perror("select()");
       exit(EXIT_FAILURE);
     }
-    if (select_status == 0) {
+    if (select_status == 0 && !no_msg_warn) {
       Logger::log(&in_addr_, "No message received. Session closed.", RED);
       NetworkUtils::close_connection(client_socket_);
       break;
     }
+    if (select_status == 0 && no_msg_warn) {
+      no_msg_warn = false;
+      std::stringstream info;
+      info << "\r\nNo message for " << no_msg_sec_ - no_msg_warn_before_;
+      info << "s disconnection in " << no_msg_warn_before_ << "s.\r\n";
+      NetworkUtils::send_buffer(info.str(), client_socket_);
+      NetworkUtils::send_buffer(prompt, client_socket_);
+      continue;
+    }
 
     if (!FD_ISSET(client_socket_, &read_fds)) {
+      std::cout << "Coś się tu odjaniepawliło?!" << std::endl;
       continue;  // Should never be reached
     }
 
@@ -85,6 +98,7 @@ void ClientSession::thread_wrapper() {
       }
     }
 
+    Logger::log("Debug", buffer);
     if (!query_ready) continue;
 
     /* Perform command if query finished */
@@ -97,8 +111,11 @@ void ClientSession::thread_wrapper() {
     }
 
     NetworkUtils::send_buffer(prompt, client_socket_);
+    if (no_msg_sec_ > no_msg_warn_before_) no_msg_warn = true;
     query_ready = false;
     querry.clear();
   }
+
+  /* Session thread is finished */
   sess_alive_ = false;
 }
