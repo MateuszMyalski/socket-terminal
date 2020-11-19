@@ -5,6 +5,7 @@
 #include <list>
 
 #include "client_session.hpp"
+#include "command_dispacher.hpp"
 
 class SocketTerminalServer {
  private:
@@ -15,9 +16,12 @@ class SocketTerminalServer {
   int server_socket_handler;
   std::list<ClientSession *> live_connections;
 
+  CommandDispacher *command_dispacher;
+
  public:
-  SocketTerminalServer(std::string server_ip, unsigned short server_port,
-                       unsigned short max_connections);
+  SocketTerminalServer(const std::string &server_ip, unsigned short server_port,
+                       unsigned short max_connections,
+                       CommandDispacher *command_dispacher);
   ~SocketTerminalServer();
 
   ClientSession *check_for_connection();

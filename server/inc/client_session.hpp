@@ -6,6 +6,8 @@
 #include <iostream>
 #include <thread>
 
+#include "command_dispacher.hpp"
+
 class ClientSession {
  private:
   // Client variables
@@ -17,11 +19,16 @@ class ClientSession {
   // Session variables
   volatile bool session_alive = false;
   std::thread client_thread;
-  long no_message_sec = 5;
+  long no_message_sec = 15;
 
+  // Querry parsing variables
+  CommandDispacher *command_dispacher;
+  std::string prompt = "client> ";
+  
 
  public:
-  ClientSession(struct sockaddr_in in_address, const int client_socket);
+  ClientSession(struct sockaddr_in in_address, const int client_socket,
+                CommandDispacher *command_dispacher);
   virtual ~ClientSession() {}
 
   bool is_session_status_alive();

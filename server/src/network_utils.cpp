@@ -4,6 +4,15 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 
+static bool descriptor_must_valid(const int descriptor) {
+  if (fcntl(descriptor, F_GETFD) < 0) {
+    perror("fcntl()");
+    exit(EXIT_FAILURE);
+  } else {
+    return true;
+  }
+}
+
 struct sockaddr_in NetworkUtils::generate_address(std::string ip,
                                                   unsigned short port) {
   struct sockaddr_in address = {.sin_family = AF_INET, .sin_port = htons(port)};
@@ -27,9 +36,9 @@ const int NetworkUtils::create_socket(void) {
 
 void NetworkUtils::bind_to_address(const int socket_handler,
                                    struct sockaddr_in address) {
-  NetworkUtils::descriptor_must_valid(socket_handler);
+  descriptor_must_valid(socket_handler);
 
-  int status = bind(socket_handler, (struct sockaddr*)&address,
+  int status = bind(socket_handler, (struct sockaddr *)&address,
                     (socklen_t)sizeof(address));
   if (status < 0) {
     perror("bind()");
@@ -39,7 +48,7 @@ void NetworkUtils::bind_to_address(const int socket_handler,
 
 void NetworkUtils::listen_on_socket(const int socket_handler,
                                     unsigned short max_connections) {
-  NetworkUtils::descriptor_must_valid(socket_handler);
+  descriptor_must_valid(socket_handler);
 
   if (max_connections == 0) {
     std::cerr << "Max connections must be greater than 0." << std::endl;
@@ -54,7 +63,7 @@ void NetworkUtils::listen_on_socket(const int socket_handler,
 }
 
 void NetworkUtils::set_non_blocking(const int socket_handler) {
-  NetworkUtils::descriptor_must_valid(socket_handler);
+  descriptor_must_valid(socket_handler);
 
   // Check if is already non-blocking
   if (fcntl(socket_handler, F_GETFL) & O_NONBLOCK) {
@@ -71,17 +80,18 @@ void NetworkUtils::close_connection(const int socket_handler) {
   if (fcntl(socket_handler, F_GETFD) >= 0) close(socket_handler);
 }
 
-bool NetworkUtils::descriptor_must_valid(const int descriptor) {
-  if (fcntl(descriptor, F_GETFD) < 0) {
-    perror("fcntl()");
-    exit(EXIT_FAILURE);
-  } else {
-    return true;
-  }
-}
-
 void NetworkUtils::set_address_reuse(const int socket_handler) {
-  NetworkUtils::descriptor_must_valid(socket_handler);
+  descriptor_must_valid(socket_handler);
   int option = true;
   setsockopt(socket_handler, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int));
+}
+
+void NetworkUtils::send_buffer(const std::string &buffer_string,
+                               const int socket_handler) {
+  descriptor_must_valid(socket_handler);
+
+  if (send(socket_handler, buffer_string.c_str(), buffer_string.size(), 0) < 0) {
+    perror("send()");
+    exit(EXIT_FAILURE);
+  }
 }

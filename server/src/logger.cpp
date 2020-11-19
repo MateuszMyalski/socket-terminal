@@ -99,5 +99,6 @@ void Logger::log(const std::string &label, const std::vector<char> buffer,
     std::cout << "[" << static_cast<int>(symbol) << "]";
   }
 
+  std::cout << std::endl; 
   if (Logger::colors) select_color(RESET);
 }

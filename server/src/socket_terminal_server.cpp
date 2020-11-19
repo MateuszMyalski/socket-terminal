@@ -8,9 +8,9 @@
 #include "logger.hpp"
 #include "network_utils.hpp"
 
-SocketTerminalServer::SocketTerminalServer(std::string server_ip,
-                                           unsigned short server_port,
-                                           unsigned short max_connections) {
+SocketTerminalServer::SocketTerminalServer(
+    const std::string &server_ip, unsigned short server_port,
+    unsigned short max_connections, CommandDispacher *command_dispacher) {
   std::stringstream info;
   info << "Hosted on IP: " << server_ip;
   Logger::log("server", info.str(), RED);
@@ -25,6 +25,7 @@ SocketTerminalServer::SocketTerminalServer(std::string server_ip,
   this->server_ip = server_ip;
   this->server_port = server_port;
   this->max_connections = max_connections;
+  this->command_dispacher = command_dispacher;
 
   struct sockaddr_in server_address =
       NetworkUtils::generate_address(this->server_ip, this->server_port);
@@ -41,7 +42,7 @@ SocketTerminalServer::SocketTerminalServer(std::string server_ip,
 ClientSession *SocketTerminalServer::check_for_connection() {
   struct sockaddr_in in_address = {0};
   socklen_t address_len = sizeof(in_address);
-  
+
   const int client_socket =
       accept(this->server_socket_handler, (struct sockaddr *)&in_address,
              &address_len);
@@ -56,7 +57,8 @@ ClientSession *SocketTerminalServer::check_for_connection() {
 
   Logger::log(&in_address, "Incoming connection", YELLOW);
 
-  ClientSession *client = new ClientSession(in_address, client_socket);
+  ClientSession *client =
+      new ClientSession(in_address, client_socket, this->command_dispacher);
   this->live_connections.push_back(client);
   client->start_session();
 
@@ -64,8 +66,7 @@ ClientSession *SocketTerminalServer::check_for_connection() {
 }
 
 void SocketTerminalServer::close_dead_sessions() {
-  std::list<ClientSession *>::iterator conn_it =
-      this->live_connections.begin();
+  std::list<ClientSession *>::iterator conn_it = this->live_connections.begin();
 
   while (conn_it != this->live_connections.end()) {
     if (!(*conn_it)->is_session_status_alive()) {

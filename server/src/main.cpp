@@ -5,22 +5,23 @@
 #include <iostream>
 #include <sstream>
 
+#include "basic_commands.hpp"
 #include "client_session.hpp"
+#include "command_dispacher.hpp"
 #include "logger.hpp"
 #include "socket_terminal_server.hpp"
 
-// TODO Standarize logs
-// TODO Write to client
-// TODO mutex and thread to std
-// TODO Parser
 // TODO perror -> strerror(errno)
 // TODO add reconnect
+// Move variable in constructor setting to :
 
 int main(int argc, char *argv[]) {
-  SocketTerminalServer *server =
-      new SocketTerminalServer("127.0.0.1", 8888, 10);
-
   unsigned short prev_live_connections = 0;
+  CommandDispacher *command_dispacher = new CommandDispacher();
+  command_dispacher->register_command("echo", new BasicCommands::Echo);
+  command_dispacher->register_command("ping", new BasicCommands::Ping);
+  SocketTerminalServer *server =
+      new SocketTerminalServer("127.0.0.1", 8888, 10, command_dispacher);
 
   while (1) {
     ClientSession *client = server->check_for_connection();
@@ -35,6 +36,7 @@ int main(int argc, char *argv[]) {
     usleep(1000 * 1000);
   }
 
+  delete command_dispacher;
   delete server;
   return EXIT_SUCCESS;
 }
