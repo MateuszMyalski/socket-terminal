@@ -34,6 +34,9 @@ void ClientSession::end_session() {
 bool ClientSession::is_session_status_alive() { return sess_alive_; }
 
 void ClientSession::thread_wrapper() {
+  /* Special symbols flags */
+  bool action_confirm = false;
+
   /* Waring before timeout logic */
   bool no_msg_warn = true;
   if (no_msg_sec_ <= no_msg_warn_before_) no_msg_warn = false;
@@ -80,20 +83,30 @@ void ClientSession::thread_wrapper() {
     }
 
     int n_recv = recv(client_socket_, &buffer[0], buffer.size(), 0);
-    if (n_recv <= 0) {
+    if (n_recv < 0) {
       perror("recv()");
       exit(EXIT_FAILURE);
     }
+    if (n_recv == 0) {
+      Logger::log(&in_addr_, "Session closed by client.");
+      NetworkUtils::close_connection(client_socket_);
+      break;
+    }
 
     /* Bind query and react to special symbols */
-    for (auto &symbol : buffer) {
-      switch (symbol) {
-        case '\n':
+    for (std::vector<char>::const_iterator symbol_it = buffer.begin();
+         symbol_it != buffer.end(); symbol_it++) {
+      switch (*symbol_it) {
+        case '\n':  // New line
           if (!query_ready) query_ready = true;
           break;
 
+        case -1:
+          std::cout << "catched" << std::endl;
+          break;
+
         default:
-          if (isprint(symbol)) querry.push_back(symbol);
+          if (isprint(*symbol_it)) querry.push_back(*symbol_it);
           break;
       }
     }
