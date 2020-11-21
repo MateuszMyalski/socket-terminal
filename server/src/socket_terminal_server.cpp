@@ -46,6 +46,8 @@ ClientSession *SocketTerminalServer::check_for_connection() {
 
   /* Create session for new connection */
   Logger::log(name, "Incoming connection", YELLOW);
+  socklen_t in_address_len = sizeof(in_address);
+  int peer_name = getpeername(client_socket, (struct sockaddr *) &in_address, &in_address_len);
   ClientSession *client =
       new ClientSession(in_address, client_socket, cmd_disp_);
   live_conn_.push_back(client);
@@ -68,8 +70,12 @@ void SocketTerminalServer::close_dead_sessions() {
   }
 }
 
-unsigned short SocketTerminalServer::get_live_connections() {
+unsigned short SocketTerminalServer::get_live_conn_numbers() {
   return live_conn_.size();
+}
+
+std::list<ClientSession *> SocketTerminalServer::get_live_conns() {
+  return live_conn_;
 }
 
 SocketTerminalServer::~SocketTerminalServer() {

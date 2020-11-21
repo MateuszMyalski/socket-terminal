@@ -33,11 +33,17 @@ int main(int argc, char *argv[]) {
   command_dispacher->register_command("ping", new BasicCommands::Ping);
 
   /* Instance of the server for main thread*/
-  std::string ip = "127.0.0.1";
+  std::string ip = "127.0.0.1";  //"192.168.100.11";
   unsigned short port = 8888;
   unsigned short max_conn = 10;
   SocketTerminalServer *server =
       new SocketTerminalServer(ip, port, max_conn, command_dispacher);
+
+  /* Assign commands with shared data */
+  BasicCommands::Peers *peer_cmd = new BasicCommands::Peers();
+  peer_cmd->assign_server(server);
+  command_dispacher->register_command("peers",
+                                      static_cast<Command *>(peer_cmd));
 
   std::stringstream info;
   info << "Hosted on IP: " << ip;
@@ -54,7 +60,7 @@ int main(int argc, char *argv[]) {
   while (1) {
     ClientSession *client = server->check_for_connection();
 
-    display_live_connections(server->get_live_connections());
+    display_live_connections(server->get_live_conn_numbers());
 
     server->close_dead_sessions();
   }

@@ -27,6 +27,7 @@ class SocketTerminalServer {
   ~SocketTerminalServer();
 
   ClientSession *check_for_connection();
-  unsigned short get_live_connections();
+  unsigned short get_live_conn_numbers();
+  std::list<ClientSession *> get_live_conns();
   void close_dead_sessions();
 };

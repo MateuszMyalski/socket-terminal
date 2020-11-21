@@ -1,11 +1,14 @@
 #include "logger.hpp"
 
+#include <assert.h>
+
 #include <ctime>
 #include <ostream>
 std::string Logger::time_format = "%F %T";
 bool Logger::colors = true;
 
 std::string ip_to_str(const struct sockaddr_in *address) {
+  assert(address);
   std::string product;
   product = inet_ntoa(address->sin_addr);
   return product;
@@ -99,6 +102,6 @@ void Logger::log(const std::string &label, const std::vector<char> buffer,
     std::cout << "[" << static_cast<int>(symbol) << "]";
   }
 
-  std::cout << std::endl; 
+  std::cout << std::endl;
   if (Logger::colors) select_color(RESET);
 }
