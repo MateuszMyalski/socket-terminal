@@ -18,7 +18,7 @@ ClientSession::ClientSession(struct sockaddr_in in_addres,
       client_socket(socket_handler) {}
 
 void ClientSession::start_session() {
-  Logger::log(&in_addr, "Creating session.", YELLOW);
+  Logger::log(&in_addr, "Creating session.", Logger::YELLOW);
 
   sess_alive_ = true;
   client_thread_ = std::thread(&ClientSession::thread_wrapper, this);
@@ -26,7 +26,7 @@ void ClientSession::start_session() {
 }
 
 void ClientSession::end_session() {
-  Logger::log(&in_addr, "Closing session.", YELLOW);
+  Logger::log(&in_addr, "Closing session.", Logger::YELLOW);
 
   if (sess_alive_) sess_alive_ = false;
   if (client_thread_.joinable()) client_thread_.join();
@@ -64,7 +64,7 @@ void ClientSession::thread_wrapper() {
       exit(EXIT_FAILURE);
     }
     if (select_status == 0 && !no_msg_warn) {
-      Logger::log(&in_addr, "No message received. Session closed.", RED);
+      Logger::log(&in_addr, "No message received. Session closed.", Logger::RED);
       NetworkUtils::close_connection(client_socket);
       break;
     }
@@ -83,7 +83,7 @@ void ClientSession::thread_wrapper() {
     int n_recv = recv(client_socket, &buffer[0], buffer.size(), 0);
     assert(n_recv > 0);
     if (n_recv == 0) {
-      Logger::log(&in_addr, "Session closed by client.");
+      Logger::log(&in_addr, "Session closed by client.", Logger::WHITE);
       NetworkUtils::close_connection(client_socket);
       break;
     }
@@ -106,14 +106,14 @@ void ClientSession::thread_wrapper() {
       }
     }
 
-    Logger::log("Debug", buffer);
+    Logger::log("Debug", buffer, Logger::WHITE);
     if (!query_ready) continue;
 
     /* Perform command if query finished */
     std::stringstream cmd_out_stream;
     cmd_disp_->run(&cmd_out_stream, querry);
     if (cmd_out_stream.rdbuf()->in_avail()) {
-      Logger::log(&in_addr, cmd_out_stream.str());
+      Logger::log(&in_addr, cmd_out_stream.str(), Logger::WHITE);
       NetworkUtils::send_buffer(cmd_out_stream.str(), client_socket);
       NetworkUtils::send_buffer("\n\r", client_socket);
     }

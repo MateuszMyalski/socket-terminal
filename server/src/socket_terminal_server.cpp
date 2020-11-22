@@ -45,7 +45,7 @@ ClientSession *SocketTerminalServer::check_for_connection() {
   }
 
   /* Create session for new connection */
-  Logger::log(name, "Incoming connection", YELLOW);
+  Logger::log(name, "Incoming connection", Logger::YELLOW);
   socklen_t in_address_len = sizeof(in_address);
   int peer_name = getpeername(client_socket, (struct sockaddr *) &in_address, &in_address_len);
   ClientSession *client =

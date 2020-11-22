@@ -37,7 +37,7 @@ void CommandDispacher::dispatch(std::stringstream *out_stream,
   CommandMap::const_iterator cmd_pair = registered_cmds_.find(args[0]);
 
   if (cmd_pair == registered_cmds_.end()) {
-    Logger::log("server", args[0] + ": command not found.", YELLOW);
+    Logger::log("server", args[0] + ": command not found.", Logger::YELLOW);
   } else {
     out_stream->str("");
     Command *cmd = cmd_pair->second;

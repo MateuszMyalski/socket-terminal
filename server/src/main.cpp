@@ -5,10 +5,10 @@
 #include <iostream>
 #include <sstream>
 
+#include "logger.hpp"
 #include "basic_commands.hpp"
 #include "client_session.hpp"
 #include "command_dispacher.hpp"
-#include "logger.hpp"
 #include "socket_terminal_server.hpp"
 
 // TODO perror -> strerror(errno)
@@ -22,7 +22,7 @@ void display_live_connections(unsigned short live_sessions) {
     prev_live_connections = live_sessions;
     std::stringstream info;
     info << "Live connections: " << prev_live_connections;
-    Logger::log("server", info.str());
+    Logger::log("server", info.str(), Logger::WHITE);
   }
 }
 
@@ -45,15 +45,18 @@ int main(int argc, char *argv[]) {
   command_dispacher->register_command("peers",
                                       static_cast<Command *>(peer_cmd));
 
+  BasicCommands::Msg *msg_cmd = new BasicCommands::Msg();
+  msg_cmd->assign_server(server);
+  command_dispacher->register_command("msg", static_cast<Command *>(msg_cmd));
   std::stringstream info;
   info << "Hosted on IP: " << ip;
-  Logger::log(server->name, info.str(), RED);
+  Logger::log(server->name, info.str(), Logger::RED);
   info.str("");
   info << "Running on port: " << port;
-  Logger::log(server->name, info.str(), RED);
+  Logger::log(server->name, info.str(), Logger::RED);
   info.str("");
   info << "Max connection: " << max_conn;
-  Logger::log(server->name, info.str(), RED);
+  Logger::log(server->name, info.str(), Logger::RED);
   info.str("");
 
   /* Main thread */
