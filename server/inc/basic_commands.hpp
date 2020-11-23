@@ -117,7 +117,7 @@ class BasicCommands::Msg : public Command {
 
     /* Send msg to peer */
     NetworkUtils::send_buffer(product.str(), to_peer->client_socket);
-    *out_stream << args[0] << " " << args[1] << product;
+    *out_stream << args[0] << " " << args[1] << product.str();
   }
 
   void assign_server(SocketTerminalServer *server) {
