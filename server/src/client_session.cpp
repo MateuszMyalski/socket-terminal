@@ -81,7 +81,6 @@ void ClientSession::thread_wrapper() {
     assert(FD_ISSET(client_socket, &read_fds));
 
     int n_recv = recv(client_socket, &buffer[0], buffer.size(), 0);
-    assert(n_recv > 0);
     if (n_recv == 0) {
       Logger::log(&in_addr, "Session closed by client.", Logger::WHITE);
       NetworkUtils::close_connection(client_socket);

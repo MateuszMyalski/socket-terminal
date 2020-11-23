@@ -13,7 +13,7 @@ class ClientSession {
   // Session variables
   volatile bool sess_alive_ = false;
   std::thread client_thread_;
-  long no_msg_sec_ = 15;
+  long no_msg_sec_ = 60;
   long no_msg_warn_before_ = 5;  // Must be greater than no_msg_sec_
 
   // Querry parsing variables
