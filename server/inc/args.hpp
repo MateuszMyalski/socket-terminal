@@ -71,10 +71,13 @@ class Argument<std::string> : public ArgumentBase {
  public:
   Argument(std::string name, std::string short_name, std::string default_value)
       : ArgumentBase(name, short_name), arg_value_(default_value) {}
+
   std::string get_param() { return arg_value_; }
 
   void set_param(const std::vector<std::string> &args_list,
                  std::vector<std::string>::const_iterator list_it) {
+    if (list_it == std::end(args_list))
+      throw std::runtime_error("Not enough args");
     arg_value_ = *(list_it + 1);
   }
 };
