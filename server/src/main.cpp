@@ -1,5 +1,6 @@
 #include "main.hpp"
 
+#include <signal.h>
 #include <unistd.h>
 
 #include <iostream>
@@ -17,6 +18,11 @@
 std::string server_ip = "127.0.0.1";
 unsigned short server_port = 8888;
 unsigned short max_peers = 10;
+bool server_run = true;
+
+void signal_server_stop(int s) {
+  server_run = false;
+}
 
 void dispatch_exec_args(int argc, char *argv[]) {
   const char *arg_pattern = "i:p:c";
@@ -51,7 +57,31 @@ void display_live_connections(unsigned short live_sessions) {
   }
 }
 
+void display_server_info(SocketTerminalServer *server) {
+  std::stringstream info;
+
+  info << "Hosted on IP: " << server_ip;
+  Logger::log(server->name, info.str(), Logger::RED);
+  info.str("");
+
+  info << "Running on port: " << server_port;
+  Logger::log(server->name, info.str(), Logger::RED);
+  info.str("");
+
+  info << "Max connection: " << max_peers;
+  Logger::log(server->name, info.str(), Logger::RED);
+  info.str("");
+}
+
 int main(int argc, char *argv[]) {
+  /* Assign signals */
+  struct sigaction sigIntHandler;
+
+  sigIntHandler.sa_handler = signal_server_stop;
+  sigemptyset(&sigIntHandler.sa_mask);
+  sigIntHandler.sa_flags = 0;
+  sigaction(SIGINT, &sigIntHandler, NULL);
+
   /* Dispatch args */
   dispatch_exec_args(argc, argv);
 
@@ -73,19 +103,11 @@ int main(int argc, char *argv[]) {
   BasicCommands::Msg *msg_cmd = new BasicCommands::Msg();
   msg_cmd->assign_server(server);
   command_dispacher->register_command("msg", static_cast<Command *>(msg_cmd));
-  std::stringstream info;
-  info << "Hosted on IP: " << server_ip;
-  Logger::log(server->name, info.str(), Logger::RED);
-  info.str("");
-  info << "Running on port: " << server_port;
-  Logger::log(server->name, info.str(), Logger::RED);
-  info.str("");
-  info << "Max connection: " << max_peers;
-  Logger::log(server->name, info.str(), Logger::RED);
-  info.str("");
+
+  display_server_info(server);
 
   /* Main thread */
-  while (1) {
+  while (server_run) {
     ClientSession *client = server->check_for_connection();
 
     display_live_connections(server->get_live_conn_numbers());
@@ -93,7 +115,13 @@ int main(int argc, char *argv[]) {
     server->close_dead_sessions();
   }
 
+  delete peer_cmd;
+  delete msg_cmd;
   delete command_dispacher;
+
   delete server;
+
+  Logger::log(argv[0], "Server closed successfully!", Logger::WHITE);
+
   return EXIT_SUCCESS;
 }
