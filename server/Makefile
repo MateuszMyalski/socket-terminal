@@ -6,7 +6,7 @@ TARGET := server.out
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -Wno-unused-variable -Wall 
+CFLAGS := -g -Wno-unused-variable -Wall -std=c++17
 LIB := -pthread
 INC := -I inc
 

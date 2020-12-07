@@ -8,7 +8,8 @@
 #include <vector>
 
 #define TIME_FORMAT "%F %T"
-#define COLORS
+
+inline bool color_logs = false;
 
 namespace Logger {
 enum colors_e {
@@ -24,6 +25,8 @@ enum colors_e {
 };
 
 inline void select_color(enum colors_e color) {
+  if (!color_logs) return;
+  
   switch (color) {
     case BLACK:
       std::cout << "\u001b[30m";
@@ -75,44 +78,33 @@ inline void print_header(const std::string &address) {
 
   std::string formatted_time(time_buffer);
 
-#ifdef COLORS
   select_color(CYAN);
-#endif
 
   std::cout << "[" << formatted_time << "]";
 
-#ifdef COLORS
   select_color(BLUE);
-#endif
+
   std::cout << "[" << address << "] ";
 
-#ifdef COLORS
   select_color(RESET);
-#endif
 }
 
 inline void log(const std::string &label, const std::string &buffer,
                 enum colors_e log_color) {
   print_header(label);
 
-#ifdef COLORS
   select_color(log_color);
-#endif
 
   std::cout << buffer << std::endl;
 
-#ifdef COLORS
   select_color(RESET);
-#endif
 }
 
 inline void log(const std::string &label, const std::vector<char> buffer,
                 enum colors_e log_color) {
   print_header(label);
 
-#ifdef COLORS
   select_color(log_color);
-#endif
 
   for (auto &symbol : buffer) {
     if (isprint(symbol)) {
@@ -124,9 +116,7 @@ inline void log(const std::string &label, const std::vector<char> buffer,
 
   std::cout << std::endl;
 
-#ifdef COLORS
   select_color(RESET);
-#endif
 }
 
 inline void log(const struct sockaddr_in *address, const std::string &buffer,
