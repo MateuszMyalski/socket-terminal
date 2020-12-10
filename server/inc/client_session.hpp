@@ -13,8 +13,8 @@ class ClientSession {
   // Session variables
   volatile bool sess_alive_ = false;
   std::thread client_thread_;
-  long no_msg_sec_ = 60;
-  long no_msg_warn_before_ = 5;  // Must be greater than no_msg_sec_
+  long no_msg_sec_ = 120;
+  long no_msg_warn_before_ = 30;  // Must be greater than no_msg_sec_
 
   // Querry parsing variables
   CommandDispacher *cmd_disp_;
@@ -22,7 +22,7 @@ class ClientSession {
 
  public:
   // Client variables
-  size_t packet_size = 10;  // 24;
+  size_t packet_size = 1024;
   struct sockaddr_in in_addr;
   int client_socket;
 

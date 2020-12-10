@@ -100,7 +100,7 @@ class BasicCommands::Msg : public Command {
 
     /* Prepare msg by binding other args */
     std::stringstream product;
-    std::vector<std::string> msg(args.begin() + 3, args.end());
+    std::vector<std::string> msg(args.begin() + 2, args.end());
 
     product << "\r\n";
     for (auto arg_it = msg.begin(); arg_it != msg.end(); arg_it++) {
