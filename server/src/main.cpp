@@ -12,9 +12,6 @@
 #include "logger.hpp"
 #include "socket_terminal_server.hpp"
 
-// TODO add reconnect
-/* Server default params */
-
 std::string server_ip = "127.0.0.1";
 unsigned short server_port = 8888;
 unsigned short max_peers = 10;

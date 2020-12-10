@@ -105,7 +105,7 @@ void ClientSession::thread_wrapper() {
       }
     }
 
-    Logger::log("Debug", buffer, Logger::WHITE);
+    // Logger::log("Debug", buffer, Logger::WHITE);
     if (!query_ready) continue;
 
     /* Perform command if query finished */

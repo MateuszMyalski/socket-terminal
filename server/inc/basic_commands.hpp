@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unistd.h>
+
 #include <sstream>
 
 #include "assert.h"
@@ -69,9 +71,8 @@ class BasicCommands::Msg : public Command {
  public:
   void execute(std::stringstream *out_stream,
                const std::vector<std::string> &args) {
-    /* Parse args */
-    if (args.size() < 3) {
-      *out_stream << "Not enough args.";
+    if (args.size() < 2) {
+      *out_stream << "Usage: " << args[0] << " [IPv4] [msg]";
       return;
     }
 
@@ -79,35 +80,30 @@ class BasicCommands::Msg : public Command {
     std::cout << args[1] << std::endl;
     struct sockaddr_in dest_addr = {0};
     try {
-      dest_addr = NetworkUtils::generate_address(args[1], std::stol(args[2]));
+      dest_addr = NetworkUtils::generate_address(args[1], 0);
     } catch (const std::exception &e) {
-      *out_stream << "Invalid IP or port.";
+      *out_stream << "Invalid IP.";
       return;
     }
 
-    /* Search for connected peer */
-    ClientSession *to_peer = NULL;
+    /* Search for connected peer(s) */
+    std::vector<ClientSession *> to_peer;
     for (const auto &peer : server_->get_live_conns()) {
-      if (peer->in_addr.sin_addr.s_addr == dest_addr.sin_addr.s_addr &&
-          peer->in_addr.sin_port == dest_addr.sin_port) {
-        to_peer = peer;
-        break;
+      if (peer->in_addr.sin_addr.s_addr == dest_addr.sin_addr.s_addr) {
+        to_peer.push_back(peer);
       }
     }
-    if (to_peer == NULL) {
+    if (!to_peer.capacity()) {
       *out_stream << "Peer not found.";
       return;
     }
-
-    assert(to_peer != NULL);
 
     /* Prepare msg by binding other args */
     std::stringstream product;
     std::vector<std::string> msg(args.begin() + 3, args.end());
 
     product << "\r\n";
-    for (std::vector<std::string>::const_iterator arg_it = msg.begin();
-         arg_it != msg.end(); arg_it++) {
+    for (auto arg_it = msg.begin(); arg_it != msg.end(); arg_it++) {
       if (arg_it == msg.begin())
         product << *arg_it;
       else
@@ -115,9 +111,10 @@ class BasicCommands::Msg : public Command {
     }
     product << "\r\n";
 
-    /* Send msg to peer */
-    NetworkUtils::send_buffer(product.str(), to_peer->client_socket);
-    *out_stream << args[0] << " " << args[1] << product.str();
+    /* Send msg to peer(s) */
+    for (auto &peer : to_peer) {
+      NetworkUtils::send_buffer(product.str(), peer->client_socket);
+    }
   }
 
   void assign_server(SocketTerminalServer *server) {
