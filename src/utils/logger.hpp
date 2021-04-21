@@ -9,7 +9,7 @@
 
 #define TIME_FORMAT "%F %T"
 
-inline bool color_logs = false;
+inline bool color_logs = true;
 
 namespace Logger {
 enum colors_e {
@@ -26,7 +26,7 @@ enum colors_e {
 
 inline void select_color(enum colors_e color) {
   if (!color_logs) return;
-  
+
   switch (color) {
     case BLACK:
       std::cout << "\u001b[30m";
