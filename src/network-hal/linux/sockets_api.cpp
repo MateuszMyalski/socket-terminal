@@ -1,4 +1,4 @@
-#include "src/network-hal/sockets_adapter.hpp"
+#include "src/network-hal/sockets_api.hpp"
 
 #include <arpa/inet.h>
 #include <stdio.h>  // TODO(Mateusz) Change to logger
@@ -10,30 +10,37 @@
 
 #include "utils/logger.hpp"
 
-namespace SocketsAdapter {
+namespace NetworkHal {
 
-void create_socket(socket_adapter& socket_hal, IPv ip_version) {
+struct SocketAPI::socket_adapter {
+    int handler;
+    IPv ip_version;
+};
+
+SocketAPI::SocketAPI()
+    : socket_adapter_impl(std::make_unique<socket_adapter>()){};
+
+void SocketAPI::create_socket(IPv ip_version) {
     // TODO(Mateusz) Add IPv6 if
     const int socket_hndl = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_hndl == -1) {
         printf("Error %s\n", strerror(errno));
         // TODO(Mateusz) Change to log error
     }
-    socket_hal.handler = socket_hndl;
-    socket_hal.ip_version = ip_version;
+    socket_adapter_impl->handler = socket_hndl;
+    socket_adapter_impl->ip_version = ip_version;
 }
 
-inline bool is_socket_valid(socket_adapter& socket_hal) {
-    if (fcntl(socket_hal.handler, F_GETFD) < 0) {
+inline bool SocketAPI::is_socket_valid() {
+    if (fcntl(socket_adapter_impl->handler, F_GETFD) < 0) {
         return false;
     } else {
         return true;
     }
 }
 
-void bind_socket(socket_adapter& socket_hal, const char* ip_address,
-                 uint32_t port) {
-    if (!is_socket_valid(socket_hal)) {
+void SocketAPI::bind_socket(const char* ip_address, uint32_t port) {
+    if (!is_socket_valid()) {
         return;  // TODO(Mateusz) Change to log error
     }
 
@@ -46,7 +53,7 @@ void bind_socket(socket_adapter& socket_hal, const char* ip_address,
         // TODO(Mateusz) Change to log error
     }
 
-    status = bind(socket_hal.handler, (struct sockaddr*)&address,
+    status = bind(socket_adapter_impl->handler, (struct sockaddr*)&address,
                   (socklen_t)sizeof(address));
     if (status < 0) {
         printf("Error %s\n", strerror(errno));
@@ -54,8 +61,8 @@ void bind_socket(socket_adapter& socket_hal, const char* ip_address,
     }
 }
 
-void listen_socket(socket_adapter& socket_hal, int32_t max_connections) {
-    if (!is_socket_valid(socket_hal)) {
+void SocketAPI::listen_socket(int32_t max_connections) {
+    if (!is_socket_valid()) {
         return;  // TODO(Mateusz) Change to log error
     }
 
@@ -63,56 +70,60 @@ void listen_socket(socket_adapter& socket_hal, int32_t max_connections) {
         printf("Max connections must be greater than 0.");
         // TODO(Mateusz) Change to log error
     }
-    int status = listen(socket_hal.handler, max_connections);
+    int status = listen(socket_adapter_impl->handler, max_connections);
 
     if (status == -1) {
         printf("Error %s\n", strerror(errno));
     }
 }
 
-void close_socket(socket_adapter& socket_hal) {
-    if (fcntl(socket_hal.handler, F_GETFD) >= 0) {
-        close(socket_hal.handler);
+void SocketAPI::close_socket() {
+    if (fcntl(socket_adapter_impl->handler, F_GETFD) >= 0) {
+        close(socket_adapter_impl->handler);
     }
 }
 
-void set_address_reusability(socket_adapter& socket_hal, bool option) {
-    if (!is_socket_valid(socket_hal)) {
+void SocketAPI::set_address_reusability(bool option) {
+    if (!is_socket_valid()) {
         return;  // TODO(Mateusz) Change to log error
     }
-    setsockopt(socket_hal.handler, SOL_SOCKET, SO_REUSEADDR, &option,
+    setsockopt(socket_adapter_impl->handler, SOL_SOCKET, SO_REUSEADDR, &option,
                sizeof(int));
 }
 
-void set_socket_pool(socket_adapter& socket_hal, bool option) {
-    if (!is_socket_valid(socket_hal)) {
+void SocketAPI::set_socket_pool(bool option) {
+    if (!is_socket_valid()) {
         return;  // TODO(Mateusz) Change to log error
     }
 
-    if (fcntl(socket_hal.handler, F_GETFL) & O_NONBLOCK) {
+    if (fcntl(socket_adapter_impl->handler, F_GETFL) & O_NONBLOCK) {
         return;
     }
 
-    if (fcntl(socket_hal.handler, F_SETFL, O_NONBLOCK) < 0) {
+    if (fcntl(socket_adapter_impl->handler, F_SETFL, O_NONBLOCK) < 0) {
         printf("Error %s\n", strerror(errno));
         // TODO(Mateusz) Change to log error
     }
 }
 
-void send_buffer(socket_adapter& socket_hal, const char* buffer,
-                 int64_t buffer_size) {
-    if (!is_socket_valid(socket_hal)) {
+void SocketAPI::send_buffer(const char* buffer, int64_t buffer_size) {
+    if (!is_socket_valid()) {
         return;  // TODO(Mateusz) Change to log error
     }
 
-    if (send(socket_hal.handler, buffer, buffer_size, 0) < 0) {
+    if (send(socket_adapter_impl->handler, buffer, buffer_size, 0) < 0) {
         printf("Error %s\n", strerror(errno));
         // TODO(Mateusz) Change to log error
     }
 }
 
-void shutdown_socket(socket_adapter& socket_hal) {
-    shutdown(socket_hal.handler, SHUT_RDWR);
+void SocketAPI::shutdown_socket() {
+    shutdown(socket_adapter_impl->handler, SHUT_RDWR);
 }
 
+void SocketAPI::reset_socket() {
+    close_socket();
+    shutdown_socket();
+    socket_adapter_impl.reset(new socket_adapter);
+}
 }

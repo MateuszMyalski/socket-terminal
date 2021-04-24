@@ -1,12 +1,11 @@
 #include "src/socket-server/socket_server.hpp"
 
+using namespace NetworkHal;
 namespace SocketServer {
 SocketServer::SocketServer(int32_t max_peers,
                            transmission_type server_tx_rx_type)
     //    CommandDispacher& assigned_commands)
-    : server_tx_rx_type(server_tx_rx_type),
-      max_peers(max_peers),
-      socket_hal{0} {
+    : server_tx_rx_type(server_tx_rx_type), max_peers(max_peers) {
     if (max_peers < 0) {
         // ERROR LOG HERE
         return;
@@ -22,12 +21,12 @@ server_errors SocketServer::open(char *server_ip, int32_t server_port) {
     this->server_port = server_port;
 
     // TODO(Mateusz) add Ipv6
-    SocketsAdapter::create_socket(socket_hal, this->server_ip,
-                                  SocketsAdapter::IPv::IPv4);
-    SocketsAdapter::bind_socket(socket_hal, server_ip, server_port);
-    SocketsAdapter::listen_socket(socket_hal, max_peers);
-    SocketsAdapter::set_socket_pool(socket_hal, true);
-    SocketsAdapter::set_address_reusability(socket_hal, true);
+
+    server_socket.reset_socket();
+    server_socket.bind_socket(server_ip, server_port);
+    server_socket.listen_socket(max_peers);
+    server_socket.set_socket_pool(true);
+    server_socket.set_address_reusability(true);
 
     // TODO(Mateusz) how to propagate errors?
     return server_errors::ok;
@@ -65,8 +64,8 @@ void listen() {
 }
 // void update() {}
 void SocketServer::close() {
-    SocketsAdapter::close_socket(socket_hal);
-    SocketsAdapter::shutdown_socket(socket_hal);
+    server_socket.close_socket();
+    server_socket.shutdown_socket();
 }
 
 // void terminate_pending_sessions() {}

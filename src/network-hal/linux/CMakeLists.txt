@@ -1,4 +1,4 @@
-set(LIB_SOURCE_FILES sockets_adapter.cpp)
+set(LIB_SOURCE_FILES sockets_api.cpp)
 
 add_library(libnetworkinghal-linux ${LIB_SOURCE_FILES})
 

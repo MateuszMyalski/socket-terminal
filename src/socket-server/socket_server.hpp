@@ -7,7 +7,7 @@
 #include <string>
 
 #include "src/commands/commands_dispatcher.hpp"
-#include "src/network-hal/sockets_adapter.hpp"
+#include "src/network-hal/sockets_api.hpp"
 #include "src/socket-server/client_session.hpp"
 
 namespace SocketServer {
@@ -19,10 +19,9 @@ class SocketServer {
     char* server_ip;
     int32_t server_port;
     int32_t max_peers;
-    SocketsAdapter::socket_adapter socket_hal;
+    NetworkHal::SocketAPI server_socket;
     transmission_type server_tx_rx_type;
 
-    // int server_socket; Must be a abstract - depends on os
     // std::list<ClientSession&> live_peers;
 
     // CommandDispacher* assigned_commands;
