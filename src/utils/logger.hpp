@@ -4,129 +4,105 @@
 
 #include <ctime>
 #include <iostream>
-#include <ostream>
+#include <sstream>
 #include <vector>
 
-#define TIME_FORMAT "%F %T"
-
+namespace Utils {
 inline bool color_logs = true;
 
-namespace Utils {
-enum colors_e {
-    BLACK,
-    RED,
-    GREEN,
-    YELLOW,
-    BLUE,
-    MAGENTA,
-    CYAN,
-    WHITE,
-    RESET,
+enum class colors {
+    black,
+    red,
+    green,
+    yellow,
+    blue,
+    magenta,
+    cyan,
+    white,
+    reset
 };
 
-inline void select_color(enum colors_e color) {
+namespace {
+inline void select_color(std::stringstream& stream, colors color) {
     if (!color_logs) return;
 
     switch (color) {
-        case BLACK:
-            std::cout << "\u001b[30m";
+        case colors::black:
+            stream << "\u001b[30m";
             break;
-        case RED:
-            std::cout << "\u001b[31m";
+        case colors::red:
+            stream << "\u001b[31m";
             break;
-        case GREEN:
-            std::cout << "\u001b[32m";
+        case colors::green:
+            stream << "\u001b[32m";
             break;
-        case YELLOW:
-            std::cout << "\u001b[33m";
+        case colors::yellow:
+            stream << "\u001b[33m";
             break;
-        case BLUE:
-            std::cout << "\u001b[34m";
+        case colors::blue:
+            stream << "\u001b[34m";
             break;
-        case MAGENTA:
-            std::cout << "\u001b[35m";
+        case colors::magenta:
+            stream << "\u001b[35m";
             break;
-        case CYAN:
-            std::cout << "\u001b[36m";
+        case colors::cyan:
+            stream << "\u001b[36m";
             break;
-        case WHITE:
-            std::cout << "\u001b[37m";
+        case colors::white:
+            stream << "\u001b[37m";
             break;
-        case RESET:
-            std::cout << "\u001b[0m";
+        case colors::reset:
+            stream << "\u001b[0m";
             break;
         default:
             break;
     }
 }
 
-inline std::string ip_to_str(const struct sockaddr_in *address) {
-    assert(address);
-    std::string product;
-    product = inet_ntoa(address->sin_addr);
-    return product;
-}
+inline std::string get_local_time() {
+    constexpr char time_format[] = "%F %T";
 
-inline void print_header(const std::string &address) {
     time_t rawtime;
-    struct tm *timeinfo;
+    struct tm* timeinfo;
     char time_buffer[80];
 
     time(&rawtime);
     timeinfo = localtime(&rawtime);
-    strftime(time_buffer, sizeof(time_buffer), TIME_FORMAT, timeinfo);
+    strftime(time_buffer, sizeof(time_buffer), time_format, timeinfo);
 
-    std::string formatted_time(time_buffer);
-
-    select_color(CYAN);
-
-    std::cout << "[" << formatted_time << "]";
-
-    select_color(BLUE);
-
-    std::cout << "[" << address << "] ";
-
-    select_color(RESET);
+    return time_buffer;
 }
 
-inline void log(const std::string &label, const std::string &buffer,
-                enum colors_e log_color) {
-    print_header(label);
+inline std::string add_log_info() {
+    std::stringstream stream;
+    select_color(stream, colors::cyan);
+    stream << "[" << get_local_time() << "]";
+    select_color(stream, colors::reset);
 
-    select_color(log_color);
-
-    std::cout << buffer << std::endl;
-
-    select_color(RESET);
+    return stream.str();
+}
 }
 
-inline void log(const std::string &label, const std::vector<char> buffer,
-                enum colors_e log_color) {
-    print_header(label);
+// inline std::string ip_to_str(const struct sockaddr_in *address) {
+//     assert(address);
+//     std::string product;
+//     product = inet_ntoa(address->sin_addr);
+//     return product;
+// }
 
-    select_color(log_color);
+inline void log(std::stringstream& buffer, colors color) {
+    std::stringstream stream;
+    stream << add_log_info();
+    select_color(stream, color);
+    stream << " " << buffer.str();
+    select_color(stream, colors::reset);
+    stream << std::endl;
 
-    for (auto &symbol : buffer) {
-        if (isprint(symbol)) {
-            std::cout << symbol;
-            continue;
-        }
-        std::cout << "[" << static_cast<int>(symbol) << "]";
-    }
-
-    std::cout << std::endl;
-
-    select_color(RESET);
+    std::cout << stream.str();
 }
 
-inline void log(const struct sockaddr_in *address, const std::string &buffer,
-                enum colors_e log_color) {
-    log(ip_to_str(address), buffer, log_color);
+inline void log(const char* buffer, colors color) {
+    std::stringstream tmp(buffer);
+    log(tmp, color);
 }
-
-inline void log(const struct sockaddr_in *address,
-                const std::vector<char> buffer, enum colors_e log_color) {
-    log(ip_to_str(address), buffer, log_color);
-}
-
 }

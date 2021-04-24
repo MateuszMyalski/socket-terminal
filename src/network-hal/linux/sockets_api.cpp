@@ -126,4 +126,5 @@ void SocketAPI::reset_socket() {
     shutdown_socket();
     socket_adapter_impl.reset(new socket_adapter);
 }
+
 }

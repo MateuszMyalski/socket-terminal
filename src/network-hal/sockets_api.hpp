@@ -27,6 +27,9 @@ class SocketAPI {
     void set_socket_pool(bool option);
     void reset_socket();
     void shutdown_socket();
+
+    // std::ostream& operator<<(std::ostream&, const Something)
+    // std::ostream& operator>>(std::ostream&, const Something)
 };
 }
 #endif
