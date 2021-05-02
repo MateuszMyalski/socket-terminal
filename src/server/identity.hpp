@@ -22,6 +22,7 @@ class Identity : protected Password {
    public:
     Identity(std::string username, std::string password);
     ~Identity() = default;
+    std::string get_username();
 
    private:
     std::string username;

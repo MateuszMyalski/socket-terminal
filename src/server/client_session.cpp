@@ -1,5 +1,8 @@
 #include "src/server/client_session.hpp"
 
+#include <ctime>
+#include <iomanip>
+
 #include "src/utils/logger.hpp"
 
 using namespace std::chrono;
@@ -10,7 +13,8 @@ ClientSession::ClientSession(std::unique_ptr<InSocketAPI> user_socket,
     : in_socket(std::move(user_socket)),
       keep_session_alive(ATOMIC_FLAG_INIT),
       last_action_t(system_clock::now()),
-      identity_list(identity_list) {
+      identity_list(identity_list),
+      user_identity(Identity("anonymous", "")) {
     keep_session_alive.test_and_set();
     member_thread = std::thread(&ClientSession::session_function, this);
 };
@@ -26,15 +30,38 @@ void ClientSession::schedule_msg(std::string msg) {
     tx_buffer.push(msg);
 }
 
-void ClientSession::send_msg(std::string msg) {
-    // TODO add prompt new line handling
-    in_socket->send_buffer(msg.c_str(), msg.size());
+std::string ClientSession::get_prompt() {
+    std::stringstream buff;
+    buff << user_identity.get_username();
+    buff << "> ";
+
+    return buff.str();
 };
+
+void ClientSession::send_motd() {
+    auto in_time_t = system_clock::to_time_t(last_action_t);
+    std::stringstream motd;
+    motd
+        << "You have connected to the server!\n"
+        << "The server time is: "
+        << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X") << "\n"
+        << "Provide correct identity details to aceess your desired profile.\n";
+    schedule_msg(motd.str());
+}
+
+void ClientSession::send_raw_msg(std::string msg) {
+    in_socket->send_buffer(msg.c_str(), msg.size());
+}
+
+void ClientSession::update_last_activity() {
+    std::scoped_lock lck_last_action(mtx_last_action_t);
+    last_action_t = system_clock::now();
+}
 
 void ClientSession::send_scheduled() {
     std::scoped_lock lck(mtx_tx_buffer);
     while (!tx_buffer.empty()) {
-        send_msg(tx_buffer.front());
+        send_raw_msg(tx_buffer.front());
         tx_buffer.pop();
     }
 }
@@ -48,11 +75,16 @@ void ClientSession::session_function() {
     constexpr duration<int, std::milli> refresh_delay(500);
     std::unique_lock<std::mutex> lck_tx_buffer(mtx_tx_buffer, std::defer_lock);
 
-    // last_action_t = system_clock::now();
-    schedule_msg("a");
-    schedule_msg("b");
-    schedule_msg("c");
-    schedule_msg("d\n");
+    send_motd();
+
+    schedule_msg("Username: ");
+    send_scheduled();
+    // ...
+    update_last_activity();
+    // ...
+    schedule_msg("Password: ");
+    send_scheduled();
+
     send_scheduled();
 
     while (1) {
@@ -75,14 +107,14 @@ void ClientSession::disconnect(std::string reason) {
     std::unique_lock<std::mutex> lck_keep_alive(mtx_tx_buffer, std::defer_lock);
 
     std::stringstream log_buff;
-    log_buff << "Disconnecting client: " << in_socket->repr_ip();
-    log_buff << " Reason: " << reason;
+    log_buff << "Disconnecting client: " << in_socket->repr_ip()
+             << ". Reason: " << reason;
     info(log_buff);
 
     keep_session_alive.clear();
     member_thread.join();
 
-    schedule_msg("No respond. Timeout occured. Disconnecting...");
+    schedule_msg(log_buff.str());
     send_scheduled();
 
     in_socket->close_connection();

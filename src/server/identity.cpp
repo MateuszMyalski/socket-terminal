@@ -5,6 +5,8 @@ Identity::Identity(std::string username, std::string password)
     set_password(password);
 };
 
+std::string Identity::get_username() { return username; };
+
 Password::Password(std::string password) { set_password(password); };
 
 void Password::regenerate_password(){
@@ -12,6 +14,7 @@ void Password::regenerate_password(){
     // but some algos can
     // be provided fro eg. password change every x sec. and the
     // algo is know for future users.
+    // may use lambda for that?
 };
 
 void Password::set_password(std::string& new_password) {

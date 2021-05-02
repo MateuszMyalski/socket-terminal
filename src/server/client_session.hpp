@@ -30,11 +30,14 @@ class ClientSession {
     std::atomic_flag keep_session_alive;
 
     std::vector<Identity>& identity_list;
-    Identity& user_identity;
+    Identity user_identity;
 
-    void send_msg(std::string msg);
+    void send_raw_msg(std::string msg);
+    void send_motd();
+    std::string get_prompt();
     std::string get_input();
     void session_function();
+    void update_last_activity();
 
    public:
     ClientSession(std::unique_ptr<InSocketAPI> user_socket,
