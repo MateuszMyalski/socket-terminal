@@ -1,31 +1,23 @@
-#include "src/network-hal/sockets_api.hpp"
-
-#include <arpa/inet.h>
-#include <stdio.h>  // TODO(Mateusz) Change to logger
 #include <sys/fcntl.h>
 #include <unistd.h>
 
 #include <cerrno>
 #include <cstring>
 
+#include "src/network-hal/linux/adapters_impl.hpp"
+#include "src/network-hal/sockets_api.hpp"
 #include "utils/logger.hpp"
 
 namespace NetworkHal {
-
-struct SocketAPI::socket_adapter {
-    int handler;
-    IPv ip_version;
-};
-
 SocketAPI::SocketAPI()
     : socket_adapter_impl(std::make_unique<socket_adapter>()){};
+SocketAPI::~SocketAPI() = default;
 
 void SocketAPI::create_socket(IPv ip_version) {
     // TODO(Mateusz) Add IPv6 if
     const int socket_hndl = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_hndl == -1) {
-        printf("Error %s\n", strerror(errno));
-        // TODO(Mateusz) Change to log error
+        Utils::fatal(strerror(errno));
     }
     socket_adapter_impl->handler = socket_hndl;
     socket_adapter_impl->ip_version = ip_version;
@@ -41,40 +33,64 @@ inline bool SocketAPI::is_socket_valid() {
 
 void SocketAPI::bind_socket(const char* ip_address, uint32_t port) {
     if (!is_socket_valid()) {
-        return;  // TODO(Mateusz) Change to log error
+        Utils::fatal("SocketAPI::bind_socket: Invalid socket!");
+        return;
     }
-
     // TODO(Mateusz) Add IPv6 if
     struct sockaddr_in address = {.sin_family = AF_INET,
                                   .sin_port = htons(port)};
     int status = inet_pton(AF_INET, ip_address, &address.sin_addr);
     if (status < 1) {
-        printf("Error %s\n", strerror(errno));
-        // TODO(Mateusz) Change to log error
+        Utils::fatal(strerror(errno));
     }
 
     status = bind(socket_adapter_impl->handler, (struct sockaddr*)&address,
                   (socklen_t)sizeof(address));
     if (status < 0) {
-        printf("Error %s\n", strerror(errno));
-        // TODO(Mateusz) Change to log error
+        Utils::fatal(strerror(errno));
     }
 }
 
 void SocketAPI::listen_socket(int32_t max_connections) {
     if (!is_socket_valid()) {
-        return;  // TODO(Mateusz) Change to log error
+        Utils::fatal("SocketAPI::listen_socket: Invalid socket!");
+        return;
     }
 
     if (max_connections == 0) {
-        printf("Max connections must be greater than 0.");
-        // TODO(Mateusz) Change to log error
+        Utils::fatal(
+            "SocketAPI::listen_socket: Max connections must be greater than 0");
     }
     int status = listen(socket_adapter_impl->handler, max_connections);
 
     if (status == -1) {
-        printf("Error %s\n", strerror(errno));
+        Utils::fatal(strerror(errno));
     }
+}
+
+std::unique_ptr<InSocketAPI> SocketAPI::accept_connection() {
+    auto in_socket = std::make_unique<InSocketAPI>();
+    auto adapter = std::move(in_socket->in_socket_adapter_impl);
+    adapter->in_address = {0};
+    adapter->address_len = sizeof(adapter->in_address);
+
+    adapter->handler =
+        accept(socket_adapter_impl->handler,
+               (struct sockaddr*)&adapter->in_address, &adapter->address_len);
+
+    bool is_invalid_status = (adapter->handler == 0) && (errno != EWOULDBLOCK);
+    if (is_invalid_status) {
+        Utils::fatal(strerror(errno));
+        return nullptr;
+    }
+
+    bool is_no_connection = (adapter->handler < 0) && (errno == EWOULDBLOCK);
+    if (is_no_connection) {
+        return nullptr;
+    }
+
+    in_socket->in_socket_adapter_impl = std::move(adapter);
+    return in_socket;
 }
 
 void SocketAPI::close_socket() {
@@ -85,7 +101,8 @@ void SocketAPI::close_socket() {
 
 void SocketAPI::set_address_reusability(bool option) {
     if (!is_socket_valid()) {
-        return;  // TODO(Mateusz) Change to log error
+        Utils::fatal("SocketAPI::set_address_reusability: Invalid socket!");
+        return;
     }
     setsockopt(socket_adapter_impl->handler, SOL_SOCKET, SO_REUSEADDR, &option,
                sizeof(int));
@@ -93,7 +110,8 @@ void SocketAPI::set_address_reusability(bool option) {
 
 void SocketAPI::set_socket_pool(bool option) {
     if (!is_socket_valid()) {
-        return;  // TODO(Mateusz) Change to log error
+        Utils::fatal("SocketAPI::set_socket_pool: Invalid socket!");
+        return;
     }
 
     if (fcntl(socket_adapter_impl->handler, F_GETFL) & O_NONBLOCK) {
@@ -101,19 +119,7 @@ void SocketAPI::set_socket_pool(bool option) {
     }
 
     if (fcntl(socket_adapter_impl->handler, F_SETFL, O_NONBLOCK) < 0) {
-        printf("Error %s\n", strerror(errno));
-        // TODO(Mateusz) Change to log error
-    }
-}
-
-void SocketAPI::send_buffer(const char* buffer, int64_t buffer_size) {
-    if (!is_socket_valid()) {
-        return;  // TODO(Mateusz) Change to log error
-    }
-
-    if (send(socket_adapter_impl->handler, buffer, buffer_size, 0) < 0) {
-        printf("Error %s\n", strerror(errno));
-        // TODO(Mateusz) Change to log error
+        Utils::fatal(strerror(errno));
     }
 }
 

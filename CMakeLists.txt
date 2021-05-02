@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD 17)
 #                                Compiler setup                                #
 # ---------------------------------------------------------------------------- #
 
-#set(CMAKE_CXX_COMPILER g++)
 #set(CMAKE_CXX_FLAGS "-fPIC -g -D DEBUG -Wall -Wfatal-errors -fstrict-aliasing")
 
 # ---------------------------------------------------------------------------- #
@@ -24,17 +23,18 @@ add_subdirectory(program)
 #add_subdirectory(lib/wave)
 #add_subdirectory(lib/googletest)
 
-
-
 # ---------------------------------------------------------------------------- #
 #                                 Target setup                                 #
 # ---------------------------------------------------------------------------- #
 
-set(SOURCE_LIBS libsocketserver libcommands libnetworkinghal-linux libcommands)
+set(SOURCE_LIBS libserver libcommands libnetworkinghal-linux libcommands)
 set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/program/main.cpp)
+set(CXX_COMPILER_FLAGS -g -Wpedantic -Wall -Wfatal-errors -fstrict-aliasing)
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${CMAKE_PROJECT_NAME} ${SOURCE_LIBS})
+
+target_compile_options (${CMAKE_PROJECT_NAME} PRIVATE ${CXX_COMPILER_FLAGS})
 
 # ---------------------------------------------------------------------------- #
 #                                 Include dirs                                 #

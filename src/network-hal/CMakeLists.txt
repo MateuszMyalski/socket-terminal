@@ -1,2 +1,2 @@
 add_subdirectory(linux)
-add_subdirectory(win)
+#add_subdirectory(win)

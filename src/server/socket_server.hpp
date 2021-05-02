@@ -8,11 +8,10 @@
 
 #include "src/commands/commands_dispatcher.hpp"
 #include "src/network-hal/sockets_api.hpp"
-#include "src/socket-server/client_session.hpp"
+#include "src/server/identity.hpp"
+#include "src/server/session_controller.hpp"
 
-namespace SocketServer {
-enum class transmission_type { binary, ascii, user_select };
-enum class server_errors { ok, error };
+namespace Server {
 
 class SocketServer {
    private:
@@ -20,24 +19,19 @@ class SocketServer {
     int32_t server_port;
     int32_t max_peers;
     NetworkHal::SocketAPI server_socket;
-    transmission_type server_tx_rx_type;
-
-    // std::list<ClientSession&> live_peers;
-
-    // CommandDispacher* assigned_commands;
+    SessionController sessions;
 
     void terminate_pending_sessions();
 
    public:
     std::string name = "server";
 
-    SocketServer(int32_t max_peers, transmission_type server_tx_rx_type);
-    //  CommandDispacher& assigned_commands);
-    ~SocketServer();
+    SocketServer(int32_t max_peers, std::vector<Identity>& identity_list);
+    ~SocketServer() = default;
 
     // std::list<ClientSession&> get_session_list();
-    server_errors open(char* server_ip, int32_t server_port);
-    void listen();
+    void open(char* server_ip, int32_t server_port, IPv ip_version);
+    void pool_for_peers();
     void update();
     void close();
 };

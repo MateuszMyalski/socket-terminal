@@ -19,6 +19,9 @@ enum class colors {
     magenta,
     cyan,
     white,
+    warning,
+    fatal,
+    info,
     reset
 };
 
@@ -30,12 +33,14 @@ inline void select_color(std::stringstream& stream, colors color) {
         case colors::black:
             stream << "\u001b[30m";
             break;
+        case colors::fatal:
         case colors::red:
             stream << "\u001b[31m";
             break;
         case colors::green:
             stream << "\u001b[32m";
             break;
+        case colors::warning:
         case colors::yellow:
             stream << "\u001b[33m";
             break;
@@ -48,6 +53,7 @@ inline void select_color(std::stringstream& stream, colors color) {
         case colors::cyan:
             stream << "\u001b[36m";
             break;
+        case colors::info:
         case colors::white:
             stream << "\u001b[37m";
             break;
@@ -83,13 +89,6 @@ inline std::string add_log_info() {
 }
 }
 
-// inline std::string ip_to_str(const struct sockaddr_in *address) {
-//     assert(address);
-//     std::string product;
-//     product = inet_ntoa(address->sin_addr);
-//     return product;
-// }
-
 inline void log(std::stringstream& buffer, colors color) {
     std::stringstream stream;
     stream << add_log_info();
@@ -105,4 +104,11 @@ inline void log(const char* buffer, colors color) {
     std::stringstream tmp(buffer);
     log(tmp, color);
 }
+
+inline void fatal(const char* buffer) { log(buffer, colors::fatal); }
+inline void fatal(std::stringstream& buffer) { log(buffer, colors::fatal); }
+inline void info(const char* buffer) { log(buffer, colors::info); }
+inline void info(std::stringstream& buffer) { log(buffer, colors::info); }
+inline void warning(const char* buffer) { log(buffer, colors::warning); }
+inline void warning(std::stringstream& buffer) { log(buffer, colors::warning); }
 }
