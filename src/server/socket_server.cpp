@@ -9,7 +9,7 @@ using namespace Utils;
 using namespace NetworkHal;
 namespace Server {
 SocketServer::SocketServer(int32_t max_peers,
-                           std::vector<Identity>& identity_list)
+                           std::vector<Identity> const& identity_list)
     : max_peers(max_peers), sessions(max_peers, identity_list) {
     if (max_peers < 0) {
         fatal("Server initailzied with invalid param (max_peers).");
@@ -32,7 +32,7 @@ void SocketServer::open(char* server_ip, int32_t server_port, IPv ip_version) {
     server_socket.create_socket(ip_version);
     server_socket.bind_socket(server_ip, server_port);
     server_socket.listen_socket(max_peers);
-    server_socket.set_socket_pool(true);
+    server_socket.set_socket_no_block();
     server_socket.set_address_reusability(true);
 
     info("Server opened successfully!");

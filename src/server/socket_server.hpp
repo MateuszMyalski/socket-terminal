@@ -26,7 +26,7 @@ class SocketServer {
    public:
     std::string name = "server";
 
-    SocketServer(int32_t max_peers, std::vector<Identity>& identity_list);
+    SocketServer(int32_t max_peers, std::vector<Identity> const& identity_list);
     ~SocketServer() = default;
 
     // std::list<ClientSession&> get_session_list();

@@ -17,7 +17,7 @@ using namespace NetworkHal;
 namespace Server {
 class ClientSession {
    private:
-    constexpr static size_t recv_packet_size = 1024;
+    constexpr static int32_t recv_packet_size = 1024;
     std::unique_ptr<InSocketAPI> in_socket;
 
     std::mutex mtx_tx_buffer;
@@ -29,8 +29,8 @@ class ClientSession {
     std::thread member_thread;
     std::atomic_flag keep_session_alive;
 
-    std::vector<Identity>& identity_list;
-    Identity user_identity;
+    std::vector<Identity> const& identity_list;
+    std::vector<Server::Identity>::const_iterator user_identity;
 
     void send_raw_msg(std::string msg);
     void send_motd();
@@ -38,10 +38,11 @@ class ClientSession {
     std::string get_input();
     void session_function();
     void update_last_activity();
+    bool auth();
 
    public:
     ClientSession(std::unique_ptr<InSocketAPI> user_socket,
-                  std::vector<Identity>& identity_list);
+                  std::vector<Identity> const& identity_list);
     ~ClientSession();
     void schedule_msg(std::string msg);
     std::chrono::time_point<std::chrono::system_clock> get_last_action();

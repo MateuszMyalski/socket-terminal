@@ -2,6 +2,7 @@ set(LIB_SOURCE_FILES socket_server.cpp
                      client_session.cpp
                      identity.cpp
                      session_controller.cpp 
+                     input_collector.cpp
     )
 
 add_library(libserver ${LIB_SOURCE_FILES})

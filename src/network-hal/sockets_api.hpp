@@ -6,6 +6,7 @@
 #include <memory>
 
 namespace NetworkHal {
+constexpr size_t recv_buffer_size_quant = 1 << 8;
 
 enum class IPv { IPv4, IPv6 };
 
@@ -20,11 +21,12 @@ class InSocketAPI {
     InSocketAPI();
     ~InSocketAPI();
     std::string repr_ip();
+    void set_socket_no_block();
     bool is_socket_valid();
-    void send_buffer(const char* buffer, int64_t buffer_size);
+    void send_buffer(const char* in_buffer, int64_t in_buffer_size);
+    template <typename T>
+    int64_t recv_buffer(T& out_buffer);
     void close_connection();
-    // std::ostream& operator<<(std::ostream&, const Something)
-    // std::ostream& operator>>(std::ostream&, const Something)
 };
 
 class SocketAPI {
@@ -44,7 +46,7 @@ class SocketAPI {
     std::unique_ptr<InSocketAPI> accept_connection();
     void set_address_reusability(bool option);
     void close_socket();
-    void set_socket_pool(bool option);
+    void set_socket_no_block();
     void reset_socket();
     void shutdown_socket();
 };

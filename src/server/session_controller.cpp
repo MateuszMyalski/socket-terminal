@@ -8,9 +8,17 @@
 using namespace Utils;
 using namespace std::chrono;
 namespace Server {
+namespace {
+auto calc_time_delta(time_point<system_clock> time_point_ms) {
+    auto now_t = time_point_cast<milliseconds>(system_clock::now());
+    auto delta_ms = now_t - time_point_ms;
+
+    return delta_ms;
+}
+}
 
 SessionController::SessionController(int32_t max_peers,
-                                     std::vector<Identity>& identity_list)
+                                     std::vector<Identity> const& identity_list)
     : max_peers(max_peers),
       session_timeout_ms(3000),
       identity_list(identity_list),
@@ -71,9 +79,7 @@ void SessionController::cyclic_session_updater() {
         lock_connection_list.lock();
         auto i = established_connections.begin();
         while (i != established_connections.end()) {
-            auto last_action_t = (*i)->get_last_action();
-            auto now_t = time_point_cast<milliseconds>(system_clock::now());
-            auto delta_ms = now_t - last_action_t;
+            auto delta_ms = calc_time_delta((*i)->get_last_action());
             if (delta_ms > session_timeout_ms) {
                 (*i)->disconnect("Session timeout.");
                 i = established_connections.erase(i);

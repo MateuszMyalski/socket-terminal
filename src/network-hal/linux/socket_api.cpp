@@ -108,7 +108,7 @@ void SocketAPI::set_address_reusability(bool option) {
                sizeof(int));
 }
 
-void SocketAPI::set_socket_pool(bool option) {
+void SocketAPI::set_socket_no_block() {
     if (!is_socket_valid()) {
         Utils::fatal("SocketAPI::set_socket_pool: Invalid socket!");
         return;
