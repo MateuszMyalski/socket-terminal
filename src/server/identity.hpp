@@ -23,8 +23,8 @@ class Identity : protected Password {
     Identity(std::string username, std::string password);
     ~Identity() = default;
     std::string const& get_username() const;
-    bool check_password(std::string& password) const;
-    bool check_username(std::string& username) const;
+    bool check_password(std::string password) const;
+    bool check_username(std::string username) const;
 
    private:
     std::string username;

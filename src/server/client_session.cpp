@@ -11,7 +11,6 @@
 using namespace std::chrono;
 using namespace Utils;
 namespace Server {
-
 ClientSession::ClientSession(std::unique_ptr<InSocketAPI> user_socket,
                              std::vector<Identity> const& identity_list)
     : in_socket(std::move(user_socket)),
@@ -38,7 +37,7 @@ void ClientSession::schedule_msg(std::string msg) {
 std::string ClientSession::get_prompt() {
     std::stringstream buff;
     buff << (*user_identity).get_username();
-    buff << "> ";
+    buff << "$ ";
 
     return buff.str();
 };
@@ -76,6 +75,20 @@ time_point<system_clock> ClientSession::get_last_action() {
     return time_point_cast<milliseconds>(last_action_t);
 }
 
+bool ClientSession::is_dead() { return !member_thread.joinable(); }
+
+bool ClientSession::select_identity(std::string username) {
+    auto id_it = identity_list.begin();
+    for (; id_it != identity_list.end(); id_it++) {
+        if ((*id_it).check_username(username)) {
+            user_identity = id_it;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool ClientSession::auth() {
     InputConstructor<1024> buffer(in_socket, keep_session_alive);
     constexpr int max_tries = 3;
@@ -83,43 +96,32 @@ bool ClientSession::auth() {
     schedule_msg("Username: ");
     send_scheduled();
     buffer.pool_for_respond();
-    auto username = buffer.get_response_str();
-    update_last_activity();
-
-    auto id_it = identity_list.begin();
-    for (; id_it != identity_list.end(); id_it++) {
-        if ((*id_it).check_username(username)) {
-            user_identity = id_it;
-        }
-    }
-    if (user_identity == identity_list.end()) {
+    if (!select_identity(buffer.get_response_str())) {
         return false;
     }
+    update_last_activity();
 
-    auto tries = 0;
     std::string password;
-    do {
+    for (auto tries = 0; tries < max_tries; tries++) {
         schedule_msg("Password: ");
         send_scheduled();
-        password = buffer.get_response_str();
-
         buffer.pool_for_respond();
+        update_last_activity();
+        password = buffer.get_response_str();
         update_last_activity();
 
         if ((*user_identity).check_password(password)) {
-            break;
+            return true;
         }
-        schedule_msg("Invalid password.");
-        tries++;
 
-    } while (tries > max_tries);
+        schedule_msg("Invalid password.\n");
+    }
 
-    return true;
+    return false;
 }
 
 void ClientSession::session_function() {
     constexpr duration<int, std::milli> refresh_delay(500);
-    std::unique_lock<std::mutex> lck_tx_buffer(mtx_tx_buffer, std::defer_lock);
     InputConstructor<1024> buffer(in_socket, keep_session_alive);
     std::stringstream tmp_stream;
 
@@ -127,22 +129,21 @@ void ClientSession::session_function() {
     if (!auth()) {
         tmp_stream << in_socket->repr_ip() << " invalid authentication";
         Utils::warning(tmp_stream.str().c_str());
-        tmp_stream.str("");
+        tmp_stream.str(std::string());
 
         schedule_msg("Access denied!");
         return;
     }
 
-    tmp_stream << "Access granted! Logged as: "
-               << (*user_identity).get_username();
+    tmp_stream << "Access granted! Logged as "
+               << (*user_identity).get_username() << "\n";
     schedule_msg(tmp_stream.str().c_str());
-    tmp_stream.str("");
+    tmp_stream.str(std::string());
 
     tmp_stream << in_socket->repr_ip()
                << " logged as: " << (*user_identity).get_username();
-    Utils::info(tmp_stream.str().c_str());
-    tmp_stream.str("");
-
+    info(tmp_stream.str().c_str());
+    tmp_stream.str(std::string());
     send_scheduled();
 
     while (1) {
@@ -151,27 +152,28 @@ void ClientSession::session_function() {
             return;
         }
 
-        schedule_msg("Update\n");
+        tmp_stream << get_prompt();
+        schedule_msg(tmp_stream.str().c_str());
+        tmp_stream.str(std::string());
         send_scheduled();
+        buffer.pool_for_respond();
+        update_last_activity();
+        info(buffer.get_response_str().c_str());
         std::this_thread::sleep_for(refresh_delay);
     }
-
-    // Ask for password if invalid set dead connection to be removed and finish
-    // thread
-    // Log password validation
 };
 
 void ClientSession::disconnect(std::string reason) {
-    std::unique_lock<std::mutex> lck_keep_alive(mtx_tx_buffer, std::defer_lock);
-
     std::stringstream log_buff;
     log_buff << "Disconnecting client: " << in_socket->repr_ip()
-             << ". Reason: " << reason << "\n";
+             << ". Reason: " << reason;
     info(log_buff);
 
     keep_session_alive.clear();
     member_thread.join();
 
+    log_buff << "\n";
+    schedule_msg("\n");
     schedule_msg(log_buff.str());
     send_scheduled();
 

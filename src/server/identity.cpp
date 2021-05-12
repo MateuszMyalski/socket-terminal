@@ -10,12 +10,12 @@ Identity::Identity(std::string username, std::string password)
 
 std::string const& Identity::get_username() const { return username; };
 
-bool Identity::check_password(std::string& password) const {
+bool Identity::check_password(std::string password) const {
     remove_if(password.begin(), password.end(), isspace);
     return cmp_password(password);
 }
 
-bool Identity::check_username(std::string& username) const {
+bool Identity::check_username(std::string username) const {
     remove_if(username.begin(), username.end(), isspace);
     return this->username.compare(username) == 0;
 }

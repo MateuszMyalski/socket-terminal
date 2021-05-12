@@ -93,7 +93,7 @@ std::string InputConstructor<buffer_size>::get_response_str() {
     response.reserve(input.size());
 
     for (auto it = input.begin(); it != input.end(); it++) {
-        if (isprint(*it)) {
+        if (isprint(*it) && ((*it) != '\n') && ((*it) != '\r')) {
             response.push_back(*it);
         }
     }

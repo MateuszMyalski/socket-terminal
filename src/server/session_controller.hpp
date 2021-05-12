@@ -12,6 +12,7 @@
 
 using namespace NetworkHal;
 namespace Server {
+constexpr int64_t timeout_ms = 5000;  //(1 << 15);
 class SessionController {
    private:
     static void client_session(std::unique_ptr<InSocketAPI> user_socket);

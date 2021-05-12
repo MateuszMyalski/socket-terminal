@@ -32,21 +32,27 @@ class ClientSession {
     std::vector<Identity> const& identity_list;
     std::vector<Server::Identity>::const_iterator user_identity;
 
+    void update_last_activity();
     void send_raw_msg(std::string msg);
+    std::string get_input();
+
+    bool auth();
     void send_motd();
     std::string get_prompt();
-    std::string get_input();
+
+    bool select_identity(std::string username);
     void session_function();
-    void update_last_activity();
-    bool auth();
 
    public:
     ClientSession(std::unique_ptr<InSocketAPI> user_socket,
                   std::vector<Identity> const& identity_list);
     ~ClientSession();
     void schedule_msg(std::string msg);
-    std::chrono::time_point<std::chrono::system_clock> get_last_action();
     void send_scheduled();
+
+    std::chrono::time_point<std::chrono::system_clock> get_last_action();
+    bool is_dead();
+
     void disconnect(std::string reason);
 };
 }

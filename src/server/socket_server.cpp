@@ -58,6 +58,4 @@ void SocketServer::close() {
     server_socket.close_socket();
     server_socket.shutdown_socket();
 }
-
-// void terminate_pending_sessions() {}
 }

@@ -20,7 +20,7 @@ auto calc_time_delta(time_point<system_clock> time_point_ms) {
 SessionController::SessionController(int32_t max_peers,
                                      std::vector<Identity> const& identity_list)
     : max_peers(max_peers),
-      session_timeout_ms(3000),
+      session_timeout_ms(timeout_ms),
       identity_list(identity_list),
       keep_updating(ATOMIC_FLAG_INIT) {
     established_connections.clear();
@@ -79,6 +79,11 @@ void SessionController::cyclic_session_updater() {
         lock_connection_list.lock();
         auto i = established_connections.begin();
         while (i != established_connections.end()) {
+            if ((*i)->is_dead()) {
+                i = established_connections.erase(i);
+                continue;
+            }
+
             auto delta_ms = calc_time_delta((*i)->get_last_action());
             if (delta_ms > session_timeout_ms) {
                 (*i)->disconnect("Session timeout.");
@@ -87,6 +92,7 @@ void SessionController::cyclic_session_updater() {
                 i++;
             }
         }
+        // TODO check if not killed thread
         lock_connection_list.unlock();
 
         std::this_thread::sleep_for(session_refresh_delay);
