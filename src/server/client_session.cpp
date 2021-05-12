@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "src/server/input_collector.hpp"
+#include "src/server/srv_def.hpp"
 #include "src/utils/logger.hpp"
 
 using namespace std::chrono;
@@ -90,8 +91,7 @@ bool ClientSession::select_identity(std::string username) {
 }
 
 bool ClientSession::auth() {
-    InputConstructor<1024> buffer(in_socket, keep_session_alive);
-    constexpr int max_tries = 3;
+    InputConstructor<recv_packet_size> buffer(in_socket, keep_session_alive);
 
     schedule_msg("Username: ");
     send_scheduled();
@@ -102,7 +102,7 @@ bool ClientSession::auth() {
     update_last_activity();
 
     std::string password;
-    for (auto tries = 0; tries < max_tries; tries++) {
+    for (auto tries = 0; tries < invalid_auth_max_tries; tries++) {
         schedule_msg("Password: ");
         send_scheduled();
         buffer.pool_for_respond();
@@ -121,8 +121,7 @@ bool ClientSession::auth() {
 }
 
 void ClientSession::session_function() {
-    constexpr duration<int, std::milli> refresh_delay(500);
-    InputConstructor<1024> buffer(in_socket, keep_session_alive);
+    InputConstructor<recv_packet_size> buffer(in_socket, keep_session_alive);
     std::stringstream tmp_stream;
 
     send_motd();
@@ -159,6 +158,9 @@ void ClientSession::session_function() {
         buffer.pool_for_respond();
         update_last_activity();
         info(buffer.get_response_str().c_str());
+
+        // Only for DEBUG purposes
+        constexpr duration<int, std::milli> refresh_delay(500);
         std::this_thread::sleep_for(refresh_delay);
     }
 };

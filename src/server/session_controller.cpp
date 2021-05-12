@@ -20,7 +20,6 @@ auto calc_time_delta(time_point<system_clock> time_point_ms) {
 SessionController::SessionController(int32_t max_peers,
                                      std::vector<Identity> const& identity_list)
     : max_peers(max_peers),
-      session_timeout_ms(timeout_ms),
       identity_list(identity_list),
       keep_updating(ATOMIC_FLAG_INIT) {
     established_connections.clear();
@@ -47,7 +46,7 @@ void SessionController::open_session(std::unique_ptr<InSocketAPI> client) {
 };
 
 void SessionController::start_session_updating() {
-    if (keep_updating.test_and_set() || session_timeout_ms == milliseconds(0)) {
+    if (keep_updating.test_and_set() || session_timeout_t == milliseconds(0)) {
         keep_updating.clear();
         return;
     }
@@ -66,7 +65,6 @@ void SessionController::stop_session_updating() {
 };
 
 void SessionController::cyclic_session_updater() {
-    constexpr duration<int, std::milli> session_refresh_delay(500);
     std::unique_lock<std::mutex> lock_connection_list(mtx_session_list,
                                                       std::defer_lock);
 
@@ -85,7 +83,7 @@ void SessionController::cyclic_session_updater() {
             }
 
             auto delta_ms = calc_time_delta((*i)->get_last_action());
-            if (delta_ms > session_timeout_ms) {
+            if (delta_ms > session_timeout_t) {
                 (*i)->disconnect("Session timeout.");
                 i = established_connections.erase(i);
             } else {

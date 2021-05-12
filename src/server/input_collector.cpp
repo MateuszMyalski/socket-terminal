@@ -17,6 +17,16 @@ InputConstructor<buffer_size>::InputConstructor(
 };
 
 template <size_t buffer_size>
+void inline InputConstructor<buffer_size>::clear_rx_buffer() {
+    raw_rx_buff.fill('\0');
+};
+
+template <size_t buffer_size>
+void inline InputConstructor<buffer_size>::flush_input() {
+    input.clear();
+};
+
+template <size_t buffer_size>
 void InputConstructor<buffer_size>::store_and_clear_buffer(int64_t msg_length) {
     if (msg_length <= 0) {
         return;
@@ -38,7 +48,11 @@ void InputConstructor<buffer_size>::escape_charaters(int64_t last_msg_length) {
         if (*start_it != escape_char) {
             continue;
         }
-        if ((*std::next(start_it) == '\n') || (*std::next(start_it) == '\r')) {
+
+        bool is_next_new_line =
+            (*std::next(start_it) == '\n') || (*std::next(start_it) == '\r');
+
+        if (is_next_new_line) {
             *start_it = escape_symbol;
         } else {
             start_it = input.erase(start_it);
@@ -59,16 +73,6 @@ bool InputConstructor<buffer_size>::should_exit() {
     }
 
     return keep_session || end_char_occured;
-};
-
-template <size_t buffer_size>
-void inline InputConstructor<buffer_size>::clear_rx_buffer() {
-    raw_rx_buff.fill('\0');
-};
-
-template <size_t buffer_size>
-void inline InputConstructor<buffer_size>::flush_input() {
-    input.clear();
 };
 
 template <size_t buffer_size>
@@ -99,6 +103,4 @@ std::string InputConstructor<buffer_size>::get_response_str() {
     }
     return response;
 };
-
-template class InputConstructor<1024>;
 }

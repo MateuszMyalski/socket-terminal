@@ -33,5 +33,7 @@ class InputConstructor {
     std::string get_response_str();
     std::vector<char> get_response_vec();
 };
+
+template class InputConstructor<recv_packet_size>;
 }
 #endif

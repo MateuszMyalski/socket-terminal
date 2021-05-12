@@ -12,7 +12,6 @@
 
 using namespace NetworkHal;
 namespace Server {
-constexpr int64_t timeout_ms = 5000;  //(1 << 15);
 class SessionController {
    private:
     static void client_session(std::unique_ptr<InSocketAPI> user_socket);
@@ -23,7 +22,6 @@ class SessionController {
     std::thread thread_updater;
     std::mutex mtx_session_list;
 
-    std::chrono::duration<int, std::milli> session_timeout_ms;
     int32_t max_peers;
 
     void cyclic_session_updater();

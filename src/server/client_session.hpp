@@ -12,12 +12,12 @@
 
 #include "src/network-hal/sockets_api.hpp"
 #include "src/server/identity.hpp"
+#include "src/server/srv_def.hpp"
 
 using namespace NetworkHal;
 namespace Server {
 class ClientSession {
    private:
-    constexpr static int32_t recv_packet_size = 1024;
     std::unique_ptr<InSocketAPI> in_socket;
 
     std::mutex mtx_tx_buffer;
