@@ -1,8 +1,8 @@
-#include "src/server/session_controller.hpp"
+#include "session_controller.hpp"
 
 #include <thread>
 
-#include "src/server/identity.hpp"
+#include "identity.hpp"
 #include "src/utils/logger.hpp"
 
 using namespace Utils;

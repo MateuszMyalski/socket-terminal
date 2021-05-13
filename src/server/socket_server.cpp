@@ -1,8 +1,8 @@
-#include "src/server/socket_server.hpp"
+#include "socket_server.hpp"
 
 #include <cstring>
 
-#include "src/server/client_session.hpp"
+#include "client_session.hpp"
 #include "src/utils/logger.hpp"
 
 using namespace Utils;

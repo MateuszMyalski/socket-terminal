@@ -1,4 +1,4 @@
-#include "src/server/input_collector.hpp"
+#include "input_collector.hpp"
 
 #include "src/utils/logger.hpp"
 

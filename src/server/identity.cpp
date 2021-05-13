@@ -1,4 +1,4 @@
-#include "src/server/identity.hpp"
+#include "identity.hpp"
 
 #include <algorithm>
 

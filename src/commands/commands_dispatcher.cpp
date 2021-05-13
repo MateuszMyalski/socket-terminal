@@ -1,1 +1,1 @@
-namespace CommandDispatcher {}
+namespace Commands {}

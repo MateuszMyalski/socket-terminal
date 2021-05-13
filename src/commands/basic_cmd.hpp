@@ -1,1 +1,1 @@
-namespace BasicCmd {}
+namespace Commands {}

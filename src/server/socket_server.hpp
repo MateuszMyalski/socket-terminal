@@ -6,10 +6,10 @@
 #include <list>
 #include <string>
 
+#include "identity.hpp"
+#include "session_controller.hpp"
 #include "src/commands/commands_dispatcher.hpp"
 #include "src/network-hal/sockets_api.hpp"
-#include "src/server/identity.hpp"
-#include "src/server/session_controller.hpp"
 
 namespace Server {
 

@@ -5,9 +5,9 @@
 #include <iomanip>
 #include <sstream>
 
-#include "src/server/input_collector.hpp"
-#include "src/server/srv_def.hpp"
+#include "input_collector.hpp"
 #include "src/utils/logger.hpp"
+#include "srv_def.hpp"
 
 using namespace std::chrono;
 using namespace Utils;
@@ -22,13 +22,13 @@ ClientSession::ClientSession(std::unique_ptr<InSocketAPI> user_socket,
     keep_session_alive.test_and_set();
     member_thread = std::thread(&ClientSession::session_function, this);
     in_socket->set_socket_no_block();
-};
+}
 
 ClientSession::~ClientSession() {
     if (keep_session_alive.test_and_set()) {
         disconnect("Abort.");
     }
-};
+}
 
 void ClientSession::schedule_msg(std::string msg) {
     std::scoped_lock lck(mtx_tx_buffer);
@@ -41,7 +41,7 @@ std::string ClientSession::get_prompt() {
     buff << "$ ";
 
     return buff.str();
-};
+}
 
 void ClientSession::send_motd() {
     auto in_time_t = system_clock::to_time_t(last_action_t);
@@ -163,7 +163,7 @@ void ClientSession::session_function() {
         constexpr duration<int, std::milli> refresh_delay(500);
         std::this_thread::sleep_for(refresh_delay);
     }
-};
+}
 
 void ClientSession::disconnect(std::string reason) {
     std::stringstream log_buff;

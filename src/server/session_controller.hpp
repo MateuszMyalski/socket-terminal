@@ -6,9 +6,9 @@
 #include <mutex>
 #include <string>
 
+#include "client_session.hpp"
+#include "identity.hpp"
 #include "src/network-hal/sockets_api.hpp"
-#include "src/server/client_session.hpp"
-#include "src/server/identity.hpp"
 
 using namespace NetworkHal;
 namespace Server {
