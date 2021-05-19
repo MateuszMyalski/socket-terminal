@@ -8,7 +8,6 @@
 
 #include "identity.hpp"
 #include "session_controller.hpp"
-#include "src/commands/commands_dispatcher.hpp"
 #include "src/network-hal/sockets_api.hpp"
 
 namespace Server {

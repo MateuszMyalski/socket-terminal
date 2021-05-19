@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "input_collector.hpp"
+#include "src/commands/basic_cmd.hpp"
 #include "src/utils/logger.hpp"
 #include "srv_def.hpp"
 

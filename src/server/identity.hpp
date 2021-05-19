@@ -1,7 +1,11 @@
 #ifndef SERVER_IDENTITY_HPP
 #define SERVER_IDENTITY_HPP
+
+#include <map>
 #include <string>
 
+#include "src/commands/command.hpp"
+using namespace Commands;
 namespace Server {
 
 class Password {
@@ -20,7 +24,8 @@ class Password {
 
 class Identity : protected Password {
    public:
-    Identity(std::string username, std::string password);
+    Identity(std::string username, std::string password,
+             const CommandsMap& commands);
     ~Identity() = default;
     std::string const& get_username() const;
     bool check_password(std::string password) const;
@@ -28,6 +33,7 @@ class Identity : protected Password {
 
    private:
     std::string username;
+    const CommandsMap& commands;
 };
 }
 #endif

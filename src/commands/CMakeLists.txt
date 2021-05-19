@@ -1,4 +1,4 @@
-set(LIB_SOURCE_FILES basic_cmd.cpp commands_dispatcher.cpp)
+set(LIB_SOURCE_FILES basic_cmd.cpp command_dispatcher.cpp)
 
 add_library(libcommands ${LIB_SOURCE_FILES})
 

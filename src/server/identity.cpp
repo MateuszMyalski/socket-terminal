@@ -2,9 +2,11 @@
 
 #include <algorithm>
 
+using namespace Commands;
 namespace Server {
-Identity::Identity(std::string username, std::string password)
-    : username(username) {
+Identity::Identity(std::string username, std::string password,
+                   const CommandsMap& commands)
+    : username(username), commands(commands) {
     set_password(password);
 };
 

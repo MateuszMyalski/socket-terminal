@@ -2,6 +2,7 @@
 
 #include <cstring>
 
+#include "src/commands/command_dispatcher.hpp"
 #include "client_session.hpp"
 #include "src/utils/logger.hpp"
 
