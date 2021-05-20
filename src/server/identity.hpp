@@ -28,6 +28,7 @@ class Identity : protected Password {
              const CommandsMap& commands);
     ~Identity() = default;
     std::string const& get_username() const;
+    const CommandsMap& get_command_map() const;
     bool check_password(std::string password) const;
     bool check_username(std::string username) const;
 

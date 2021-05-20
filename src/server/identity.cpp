@@ -11,6 +11,7 @@ Identity::Identity(std::string username, std::string password,
 };
 
 std::string const& Identity::get_username() const { return username; };
+const CommandsMap& Identity::get_command_map() const { return commands; }
 
 bool Identity::check_password(std::string password) const {
     remove_if(password.begin(), password.end(), isspace);

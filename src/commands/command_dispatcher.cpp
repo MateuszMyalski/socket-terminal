@@ -7,10 +7,17 @@ CommandDispatcher::CommandDispatcher(void* ctx) : ctx(ctx) {}
 
 void CommandDispatcher::register_command(const std::string& name,
                                          std::shared_ptr<Command> command) {
-    if (registered_cmds.find(name) != registered_cmds.end()) {
+    if (registered_cmds.find(name) == registered_cmds.end()) {
         registered_cmds[name] = command;
     } else {
         Utils::fatal("Cannot add command. Reason: already exists.");
+    }
+}
+
+void CommandDispatcher::register_multiple_command(
+    const CommandsMap& command_map) {
+    for (auto& command : command_map) {
+        register_command(command.first, command.second);
     }
 }
 
@@ -28,8 +35,26 @@ void CommandDispatcher::run(const std::string& querry) {
         return;
     }
     args_string = args_string.substr(0, args_string_stop + 1);
+    Utils::info(args_string.c_str());
 
     std::vector<std::string> args;
+    std::string arg_tmp(args_string.size(), 0);
+    bool skip_space = false;
+    for (auto& char_n : args_string) {
+        if (char_n == '"') {
+            !skip_space;
+        }
+
+        if (char_n == ' ' && !skip_space) {
+            args.push_back(arg_tmp);
+            arg_tmp.clear();
+        }
+        arg_tmp.push_back(char_n);
+    }
+
+    for (auto& arg : args) {
+        Utils::info(arg.c_str());
+    }
 
     // abc "arg1 lll" "arg2"
     // abc arg1 arg2 "text...."

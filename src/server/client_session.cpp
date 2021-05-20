@@ -7,9 +7,11 @@
 
 #include "input_collector.hpp"
 #include "src/commands/basic_cmd.hpp"
+#include "src/commands/command_dispatcher.hpp"
 #include "src/utils/logger.hpp"
 #include "srv_def.hpp"
 
+using namespace Commands;
 using namespace std::chrono;
 using namespace Utils;
 namespace Server {
@@ -146,6 +148,9 @@ void ClientSession::session_function() {
     tmp_stream.str(std::string());
     send_scheduled();
 
+    CommandDispatcher dispatcher(this);
+    dispatcher.register_multiple_command(user_identity->get_command_map());
+
     while (1) {
         if (!keep_session_alive.test_and_set()) {
             keep_session_alive.clear();
@@ -158,6 +163,8 @@ void ClientSession::session_function() {
         send_scheduled();
         buffer.pool_for_respond();
         update_last_activity();
+
+        dispatcher.run(buffer.get_response_str());
         info(buffer.get_response_str().c_str());
 
         // Only for DEBUG purposes
