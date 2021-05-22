@@ -16,12 +16,13 @@ set(COMMANDS_UT_SOURCES ${COMMANDS_UT_SOURCES} ${UT_MAIN_SOURCE})
 set(SERVER_UT_SOURCES ${SERVER_UT_SOURCES} ${UT_MAIN_SOURCE})
 
 add_executable(commands_ut ${COMMANDS_UT_SOURCES})
-#target_include_directories(commands PUBLIC commands)
-target_link_libraries(commands_ut gtest)
-
+target_include_directories(commands_ut PRIVATE ${INCLUDE_DIRS})
+target_link_libraries(commands_ut libcommands gtest)
+target_compile_options(commands_ut PRIVATE ${COMPILE_FLAGS})
 add_test(NAME commands_ut COMMAND commands_ut)
 
 add_executable(server_ut ${SERVER_UT_SOURCES})
-target_link_libraries(server_ut gtest)
-
+target_include_directories(server_ut PRIVATE ${INCLUDE_DIRS})
+target_link_libraries(server_ut libserver gtest)
+target_compile_options(commands_ut PRIVATE ${COMPILE_FLAGS})
 add_test(NAME server_ut COMMAND server_ut)

@@ -6,5 +6,3 @@ add_subdirectory(src)
 add_subdirectory(startup)
 add_subdirectory(ut_test)
 add_subdirectory(cmake-conf)
-
-add_custom_target(run)

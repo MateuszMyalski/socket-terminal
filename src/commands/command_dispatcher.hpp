@@ -8,6 +8,7 @@
 #include "command.hpp"
 
 namespace Commands {
+constexpr char escape_char = '\\';
 
 class CommandDispatcher {
    private:
@@ -21,7 +22,9 @@ class CommandDispatcher {
                           std::shared_ptr<Command> command);
     void register_multiple_command(const CommandsMap& command_map);
     void run(const std::string& querry);
-    void dispatch(const std::vector<std::string>& args);
+    void parse_querry(const std::string& querry,
+                      std::vector<std::string>& args);
+    bool dispatch(const std::vector<std::string>& args);
 };
 }
 #endif

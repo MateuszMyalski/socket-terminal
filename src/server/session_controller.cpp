@@ -17,11 +17,11 @@ auto calc_time_delta(time_point<system_clock> time_point_ms) {
 }
 }
 
-SessionController::SessionController(int32_t max_peers,
+SessionController::SessionController(size_t max_peers,
                                      std::vector<Identity> const& identity_list)
-    : max_peers(max_peers),
+    : keep_updating(ATOMIC_FLAG_INIT),
       identity_list(identity_list),
-      keep_updating(ATOMIC_FLAG_INIT) {
+      max_peers(max_peers) {
     established_connections.clear();
     start_session_updating();
 };

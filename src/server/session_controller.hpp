@@ -22,12 +22,12 @@ class SessionController {
     std::thread thread_updater;
     std::mutex mtx_session_list;
 
-    int32_t max_peers;
+    size_t max_peers;
 
     void cyclic_session_updater();
 
    public:
-    SessionController(int32_t max_peers,
+    SessionController(size_t max_peers,
                       std::vector<Identity> const& identity_list);
     ~SessionController();
     void open_session(std::unique_ptr<InSocketAPI> client);

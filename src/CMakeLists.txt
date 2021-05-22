@@ -5,9 +5,11 @@ add_subdirectory(utils)
 
 add_library(libcommands ${COMMANDS_LIB_SOURCE_FILES})
 target_include_directories(libcommands PRIVATE ${INCLUDE_DIRS})
+target_compile_options(libcommands PRIVATE ${COMPILE_FLAGS})
 
 add_library(libnetworkinghal-linux ${LINUX_LIB_SOURCE_FILES})
 target_include_directories(libnetworkinghal-linux PRIVATE ${INCLUDE_DIRS})
+target_compile_options(libnetworkinghal-linux PRIVATE ${COMPILE_FLAGS})
 
 #add_library(libnetworkinghal-win ${WIN_LIB_SOURCE_FILES})
 
@@ -16,3 +18,4 @@ target_include_directories(libserver PRIVATE ${INCLUDE_DIRS})
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 target_link_libraries(libserver PRIVATE Threads::Threads)
+target_compile_options(libserver PRIVATE ${COMPILE_FLAGS})
