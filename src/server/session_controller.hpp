@@ -8,7 +8,7 @@
 
 #include "client_session.hpp"
 #include "identity.hpp"
-#include "src/network-hal/sockets_api.hpp"
+#include "network-hal/sockets_api.hpp"
 
 using namespace NetworkHal;
 namespace Server {

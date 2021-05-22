@@ -1,4 +1,4 @@
-#include "src/network-hal/sockets_api.hpp"
+#include "network-hal/sockets_api.hpp"
 
 #include <arpa/inet.h>
 #include <stdio.h>  // TODO(Mateusz) Change to logger

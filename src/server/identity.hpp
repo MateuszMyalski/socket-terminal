@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-#include "src/commands/command.hpp"
+#include "commands/command.hpp"
 using namespace Commands;
 namespace Server {
 

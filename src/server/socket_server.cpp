@@ -2,9 +2,9 @@
 
 #include <cstring>
 
-#include "src/commands/command_dispatcher.hpp"
 #include "client_session.hpp"
-#include "src/utils/logger.hpp"
+#include "commands/command_dispatcher.hpp"
+#include "utils/logger.hpp"
 
 using namespace Utils;
 using namespace NetworkHal;

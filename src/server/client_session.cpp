@@ -1,15 +1,15 @@
-#include "src/server/client_session.hpp"
+#include "client_session.hpp"
 
 #include <algorithm>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
 
+#include "commands/basic_cmd.hpp"
+#include "commands/command_dispatcher.hpp"
 #include "input_collector.hpp"
-#include "src/commands/basic_cmd.hpp"
-#include "src/commands/command_dispatcher.hpp"
-#include "src/utils/logger.hpp"
 #include "srv_def.hpp"
+#include "utils/logger.hpp"
 
 using namespace Commands;
 using namespace std::chrono;

@@ -10,9 +10,9 @@
 #include <thread>
 #include <vector>
 
-#include "src/network-hal/sockets_api.hpp"
-#include "src/server/identity.hpp"
-#include "src/server/srv_def.hpp"
+#include "identity.hpp"
+#include "network-hal/sockets_api.hpp"
+#include "srv_def.hpp"
 
 using namespace NetworkHal;
 namespace Server {

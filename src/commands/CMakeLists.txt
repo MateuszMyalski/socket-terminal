@@ -1,8 +1,4 @@
-set(LIB_SOURCE_FILES basic_cmd.cpp command_dispatcher.cpp)
+set(COMMANDS_LIB_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/basic_cmd.cpp 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/command_dispatcher.cpp
+                    PARENT_SCOPE)
 
-add_library(libcommands ${LIB_SOURCE_FILES})
-
-target_include_directories(libcommands INTERFACE ${CMAKE_SOURCE_DIR}/inc
-                            PUBLIC ${CMAKE_SOURCE_DIR}/src
-                            PUBLIC ${CMAKE_SOURCE_DIR}
-                            )

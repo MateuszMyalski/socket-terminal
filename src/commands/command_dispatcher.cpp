@@ -1,6 +1,6 @@
 #include "command_dispatcher.hpp"
 
-#include "src/utils/logger.hpp"
+#include "utils/logger.hpp"
 
 namespace Commands {
 CommandDispatcher::CommandDispatcher(void* ctx) : ctx(ctx) {}

@@ -1,6 +1,6 @@
 #include "input_collector.hpp"
 
-#include "src/utils/logger.hpp"
+#include "utils/logger.hpp"
 
 using namespace NetworkHal;
 

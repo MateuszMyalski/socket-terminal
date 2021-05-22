@@ -4,9 +4,9 @@
 #include <cerrno>
 #include <cstring>
 
-#include "src/network-hal/linux/adapters_impl.hpp"
-#include "src/network-hal/sockets_api.hpp"
-#include "src/utils/logger.hpp"
+#include "network-hal/linux/adapters_impl.hpp"
+#include "network-hal/sockets_api.hpp"
+#include "utils/logger.hpp"
 
 namespace NetworkHal {
 InSocketAPI::InSocketAPI()

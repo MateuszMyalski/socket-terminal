@@ -2,7 +2,7 @@
 #define NETWORK_HAL_LINUX_HPP
 #include <arpa/inet.h>
 
-#include "src/network-hal/sockets_api.hpp"
+#include "network-hal/sockets_api.hpp"
 namespace NetworkHal {
 struct SocketAPI::socket_adapter {
     int handler;

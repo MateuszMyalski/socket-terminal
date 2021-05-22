@@ -2,10 +2,10 @@
 #include <memory>
 #include <vector>
 
-#include "src/commands/basic_cmd.hpp"
-#include "src/server/identity.hpp"
-#include "src/server/socket_server.hpp"
-#include "src/utils/logger.hpp"
+#include "commands/basic_cmd.hpp"
+#include "server/identity.hpp"
+#include "server/socket_server.hpp"
+#include "utils/logger.hpp"
 
 using namespace Server;
 using namespace Commands;

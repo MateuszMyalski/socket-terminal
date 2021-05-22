@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "src/network-hal/sockets_api.hpp"
+#include "network-hal/sockets_api.hpp"
 #include "srv_def.hpp"
 
 using namespace NetworkHal;

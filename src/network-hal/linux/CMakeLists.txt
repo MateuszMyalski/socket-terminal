@@ -1,8 +1,3 @@
-set(LIB_SOURCE_FILES in_socket_api.cpp socket_api.cpp)
-
-add_library(libnetworkinghal-linux ${LIB_SOURCE_FILES})
-
-target_include_directories(libnetworkinghal-linux INTERFACE ${CMAKE_SOURCE_DIR}/inc
-                            PUBLIC ${CMAKE_SOURCE_DIR}/src
-                            PUBLIC ${CMAKE_SOURCE_DIR}
-                            )
+set(LINUX_LIB_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/in_socket_api.cpp 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/socket_api.cpp
+                    PARENT_SCOPE)
