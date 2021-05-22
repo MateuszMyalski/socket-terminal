@@ -21,7 +21,7 @@ class CommandDispatcher {
     void register_command(const std::string& name,
                           std::shared_ptr<Command> command);
     void register_multiple_command(const CommandsMap& command_map);
-    void run(const std::string& querry);
+    bool run(const std::string& querry);
     void parse_querry(const std::string& querry,
                       std::vector<std::string>& args);
     bool dispatch(const std::vector<std::string>& args);

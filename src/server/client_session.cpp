@@ -18,8 +18,8 @@ namespace Server {
 ClientSession::ClientSession(std::unique_ptr<InSocketAPI> user_socket,
                              std::vector<Identity> const& identity_list)
     : in_socket(std::move(user_socket)),
-      keep_session_alive(ATOMIC_FLAG_INIT),
       last_action_t(system_clock::now()),
+      keep_session_alive(ATOMIC_FLAG_INIT),
       identity_list(identity_list),
       user_identity(identity_list.end()) {
     keep_session_alive.test_and_set();

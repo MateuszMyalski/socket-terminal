@@ -41,9 +41,7 @@ void CommandDispatcher::parse_querry(const std::string& querry,
     bool skip_space = false;
     bool escape = false;
 
-    for (auto it = querry_cpy.begin(); it != querry_cpy.end(); it++) {
-        auto symbol = *it;
-
+    for (auto& symbol : querry_cpy) {
         if (symbol == escape_char) {
             if (escape) {
                 arg_tmp.push_back(symbol);
@@ -83,55 +81,19 @@ void CommandDispatcher::parse_querry(const std::string& querry,
         }
 
         arg_tmp.push_back(symbol);
-
-        // escape_next_char = (symbol == escape_char) && !escape_next_char;
-
-        // if (escape_next_char) {
-        //     continue;
-        // }
-
-        // if (symbol == '"' && !escape_next_char) {
-        //     !skip_space;
-        //     escape_next_char = false;
-        //     continue;
-        // }
-
-        // if ((symbol == ' ') && !skip_space && !escape_next_char) {
-        //     args.push_back(arg_tmp);
-        //     arg_tmp.clear();
-        //     escape_next_char = false;
-        //     continue;
-        // }
-
-        // if (std::next(it) == querry_cpy.end()) {
-        //     arg_tmp.push_back(symbol);
-        //     args.push_back(arg_tmp);
-        //     arg_tmp.clear();
-        //     escape_next_char = false;
-        //     continue;
-        // }
-
-        // arg_tmp.push_back(symbol);
-        // escape_next_char = false;
     }
 
     if (!arg_tmp.empty()) {
         args.push_back(arg_tmp);
         arg_tmp.clear();
     }
-
-    // abc "arg1 lll" "arg2"
-    // abc arg1 arg2 "text...."
-    // Strip whiespaces
-    // Divide into args
-    // TODO add " " to use as one arg
-    // Rememeber about escape chars
 }
 
-void CommandDispatcher::run(const std::string& querry) {
+bool CommandDispatcher::run(const std::string& querry) {
     std::vector<std::string> args;
 
     parse_querry(querry, args);
+    return dispatch(args);
 }
 
 bool CommandDispatcher::dispatch(const std::vector<std::string>& args) {

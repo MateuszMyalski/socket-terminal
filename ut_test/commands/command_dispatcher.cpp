@@ -8,6 +8,30 @@
 using namespace Commands;
 namespace {
 
+TEST(command_dispatcher_test, run) {
+    std::string ctx;
+    CommandDispatcher command_dispatcher(static_cast<void *>(&ctx));
+
+    std::string valid_querry = {"cmd abc defg"};
+    auto command = std::shared_ptr<Command>{std::make_shared<Command>()};
+
+    command_dispatcher.register_command("cmd", command);
+    bool found = command_dispatcher.run(valid_querry);
+
+    EXPECT_TRUE(found);
+    EXPECT_EQ("cmd abc defg", ctx);
+}
+
+TEST(command_dispatcher_test, querry_whitespaces) {
+    CommandDispatcher command_dispatcher(nullptr);
+    std::vector<std::string> ref_args = {"ABC", "def", "gh", "ij", "kl"};
+
+    std::string querry("   ABC def gh ij kl   ");
+    std::vector<std::string> args;
+    command_dispatcher.parse_querry(querry, args);
+    EXPECT_EQ(ref_args, args);
+}
+
 TEST(command_dispatcher_test, parse_querry) {
     CommandDispatcher command_dispatcher(nullptr);
     std::vector<std::string> ref_args = {"ABC", "def", "gh", "ij", "kl"};
@@ -28,11 +52,11 @@ TEST(command_dispatcher_test, parse_querry_with_escape) {
     std::vector<std::string> ref_args = {"ABC", "def", "g\\h", "ij", "kl"};
     std::replace(ref_args[1].begin(), ref_args[1].end(), '}', '"');
 
-    std::string querry_a("ABC def g\\}h ij kl");
-    std::replace(querry_a.begin(), ref_args[1].end(), '}', '\\');
-    std::vector<std::string> args_a;
-    command_dispatcher.parse_querry(querry_a, args_a);
-    EXPECT_EQ(ref_args, args_a);
+    std::string querry("ABC def g\\}h ij kl");
+    std::replace(querry.begin(), ref_args[1].end(), '}', '\\');
+    std::vector<std::string> args;
+    command_dispatcher.parse_querry(querry, args);
+    EXPECT_EQ(ref_args, args);
 }
 
 TEST(command_dispatcher_test, register_commands) {
