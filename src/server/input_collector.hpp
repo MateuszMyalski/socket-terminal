@@ -23,7 +23,7 @@ class InputConstructor {
     bool should_exit();
     void clear_rx_buffer();
     void store_and_clear_buffer(int64_t msg_length);
-    void escape_charaters(int64_t last_msg_length);
+    bool is_eol_escaped();
 
    public:
     InputConstructor(std::unique_ptr<InSocketAPI> const& in_socket,

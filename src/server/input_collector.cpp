@@ -1,10 +1,24 @@
 #include "input_collector.hpp"
 
+#include <iterator>
+
 #include "utils/logger.hpp"
 
 using namespace NetworkHal;
 
 namespace Server {
+namespace {
+template <typename T>
+inline int32_t last_escape_pos(T data) {
+    // User can use win or unix end of line style
+    if (*(data.end() - 3) == escape_symbol) {
+        return 3;
+    } else if (*(data.end() - 2) == escape_symbol) {
+        return 2;
+    }
+    return 0;
+}
+}
 template <size_t buffer_size>
 InputConstructor<buffer_size>::InputConstructor(
     std::unique_ptr<InSocketAPI> const& in_socket,
@@ -38,33 +52,28 @@ void InputConstructor<buffer_size>::store_and_clear_buffer(int64_t msg_length) {
 };
 
 template <size_t buffer_size>
-void InputConstructor<buffer_size>::escape_charaters(int64_t last_msg_length) {
-    if ((last_msg_length <= 0) || (last_msg_length > input.size())) {
-        return;
+bool InputConstructor<buffer_size>::is_eol_escaped() {
+    int32_t escape_pos = last_escape_pos(input);
+    if (0 == escape_pos) {
+        return false;
     }
 
-    auto start_it = input.end() - last_msg_length;
-    for (; start_it != input.end(); start_it++) {
-        if (*start_it != escape_char) {
-            continue;
-        }
-
-        bool is_next_new_line =
-            (*std::next(start_it) == '\n') || (*std::next(start_it) == '\r');
-
-        if (is_next_new_line) {
-            *start_it = escape_symbol;
+    int32_t escape_cnt = 0;
+    auto rev_it = input.rbegin() + escape_pos;
+    for (; rev_it != input.rend(); rev_it++) {
+        if (*rev_it == escape_char) {
+            escape_cnt++;
         } else {
-            start_it = input.erase(start_it);
+            break;
         }
     }
+
+    return (escape_cnt % 2) != 0;
 };
 
 template <size_t buffer_size>
 bool InputConstructor<buffer_size>::should_exit() {
-    // User can use win or unix end of line style
-    bool is_end_char_escaped = (*(input.end() - 3) == escape_symbol) ||
-                               (*(input.end() - 2) == escape_symbol);
+    bool is_end_char_escaped = is_eol_escaped();
     bool end_char_occured = (input.back() == '\n') && !is_end_char_escaped;
 
     bool keep_session = !termination_flag.test_and_set();
@@ -82,7 +91,6 @@ void InputConstructor<buffer_size>::pool_for_respond() {
     while (!should_exit()) {
         auto msg_lenght = in_socket->recv_buffer(raw_rx_buff);
         store_and_clear_buffer(msg_lenght);
-        escape_charaters(msg_lenght);
     }
 };
 
