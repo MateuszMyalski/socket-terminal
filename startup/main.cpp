@@ -15,6 +15,7 @@ constexpr int32_t server_max_peers = 5;
 
 // TODO add cosntexpr to some methods
 // TODO template string argumentdst to const char *
+// TODO Address alredy in use falta error exit
 
 int main(int argc, char *argv[]) {
     CommandsMap std_cmd_set;

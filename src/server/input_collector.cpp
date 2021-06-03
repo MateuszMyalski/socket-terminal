@@ -11,9 +11,23 @@ namespace {
 template <typename T>
 inline int32_t last_escape_pos(T data) {
     // User can use win or unix end of line style
-    if (*(data.end() - 3) == escape_symbol) {
+    if (data.size() < 2) {
+        return 0;
+    }
+
+    auto rev_it = data.rbegin();
+    std::advance(rev_it, 2);
+
+    if (*rev_it == escape_symbol) {
         return 3;
-    } else if (*(data.end() - 2) == escape_symbol) {
+    }
+
+    if (data.size() < 3) {
+        return 0;
+    }
+
+    std::advance(rev_it, 3);
+    if (*rev_it == escape_symbol) {
         return 2;
     }
     return 0;
@@ -28,17 +42,17 @@ InputConstructor<buffer_size>::InputConstructor(
     clear_rx_buffer();
     flush_input();
     input.reserve(max_input_size);
-};
+}
 
 template <size_t buffer_size>
 void inline InputConstructor<buffer_size>::clear_rx_buffer() {
     raw_rx_buff.fill('\0');
-};
+}
 
 template <size_t buffer_size>
 void inline InputConstructor<buffer_size>::flush_input() {
     input.clear();
-};
+}
 
 template <size_t buffer_size>
 void InputConstructor<buffer_size>::store_and_clear_buffer(int64_t msg_length) {
@@ -49,7 +63,7 @@ void InputConstructor<buffer_size>::store_and_clear_buffer(int64_t msg_length) {
     auto it_base = raw_rx_buff.begin();
     input.insert(input.end(), it_base, it_base + msg_length);
     clear_rx_buffer();
-};
+}
 
 template <size_t buffer_size>
 bool InputConstructor<buffer_size>::is_eol_escaped() {
@@ -57,6 +71,7 @@ bool InputConstructor<buffer_size>::is_eol_escaped() {
     if (0 == escape_pos) {
         return false;
     }
+    Utils::warning("here");
 
     int32_t escape_cnt = 0;
     auto rev_it = input.rbegin() + escape_pos;
@@ -69,7 +84,7 @@ bool InputConstructor<buffer_size>::is_eol_escaped() {
     }
 
     return (escape_cnt % 2) != 0;
-};
+}
 
 template <size_t buffer_size>
 bool InputConstructor<buffer_size>::should_exit() {
@@ -82,7 +97,7 @@ bool InputConstructor<buffer_size>::should_exit() {
     }
 
     return keep_session || end_char_occured;
-};
+}
 
 template <size_t buffer_size>
 void InputConstructor<buffer_size>::pool_for_respond() {
@@ -92,12 +107,12 @@ void InputConstructor<buffer_size>::pool_for_respond() {
         auto msg_lenght = in_socket->recv_buffer(raw_rx_buff);
         store_and_clear_buffer(msg_lenght);
     }
-};
+}
 
 template <size_t buffer_size>
 std::vector<char> InputConstructor<buffer_size>::get_response_vec() {
     return input;
-};
+}
 
 template <size_t buffer_size>
 std::string InputConstructor<buffer_size>::get_response_str() {
@@ -110,5 +125,5 @@ std::string InputConstructor<buffer_size>::get_response_str() {
         }
     }
     return response;
-};
+}
 }

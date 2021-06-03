@@ -126,7 +126,6 @@ bool ClientSession::auth() {
 void ClientSession::session_function() {
     InputConstructor<recv_packet_size> buffer(in_socket, keep_session_alive);
     std::stringstream tmp_stream;
-
     send_motd();
     if (!auth()) {
         tmp_stream << in_socket->repr_ip() << " invalid authentication";

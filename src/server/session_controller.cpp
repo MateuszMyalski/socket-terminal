@@ -24,12 +24,12 @@ SessionController::SessionController(size_t max_peers,
       max_peers(max_peers) {
     established_connections.clear();
     start_session_updating();
-};
+}
 
 SessionController::~SessionController() {
     stop_session_updating();
     close_sessions();
-};
+}
 
 void SessionController::open_session(std::unique_ptr<InSocketAPI> client) {
     auto client_session =
@@ -43,7 +43,7 @@ void SessionController::open_session(std::unique_ptr<InSocketAPI> client) {
     std::scoped_lock lock(mtx_session_list);
     established_connections.push_back(std::move(client_session));
     info("Session registered");
-};
+}
 
 void SessionController::start_session_updating() {
     if (keep_updating.test_and_set() || session_timeout_t == milliseconds(0)) {
@@ -53,7 +53,7 @@ void SessionController::start_session_updating() {
 
     thread_updater =
         std::thread(&SessionController::cyclic_session_updater, this);
-};
+}
 
 void SessionController::stop_session_updating() {
     if (keep_updating.test_and_set()) {
@@ -62,7 +62,7 @@ void SessionController::stop_session_updating() {
     }
     keep_updating.clear();
     thread_updater.join();
-};
+}
 
 void SessionController::cyclic_session_updater() {
     std::unique_lock<std::mutex> lock_connection_list(mtx_session_list,
@@ -95,7 +95,7 @@ void SessionController::cyclic_session_updater() {
 
         std::this_thread::sleep_for(session_refresh_delay);
     }
-};
+}
 
 void SessionController::close_sessions() {
     std::scoped_lock lock(mtx_session_list);
@@ -103,5 +103,5 @@ void SessionController::close_sessions() {
         auto session_ = std::move(session);
         session->disconnect("Sessions close.");
     }
-};
+}
 }
