@@ -71,7 +71,6 @@ bool InputConstructor<buffer_size>::is_eol_escaped() {
     if (0 == escape_pos) {
         return false;
     }
-    Utils::warning("here");
 
     int32_t escape_cnt = 0;
     auto rev_it = input.rbegin() + escape_pos;

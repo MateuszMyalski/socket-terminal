@@ -90,7 +90,6 @@ void SessionController::cyclic_session_updater() {
                 i++;
             }
         }
-        // TODO check if not killed thread
         lock_connection_list.unlock();
 
         std::this_thread::sleep_for(session_refresh_delay);
