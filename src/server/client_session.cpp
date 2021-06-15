@@ -18,10 +18,10 @@ namespace Server {
 ClientSession::ClientSession(std::unique_ptr<InSocketAPI> user_socket,
                              std::vector<Identity> const& identity_list)
     : in_socket(std::move(user_socket)),
-      last_action_t(system_clock::now()),
       keep_session_alive(ATOMIC_FLAG_INIT),
       identity_list(identity_list),
-      user_identity(identity_list.end()) {
+      user_identity(identity_list.end()),
+      user_activity() {
     keep_session_alive.test_and_set();
     member_thread = std::thread(&ClientSession::session_function, this);
     in_socket->set_socket_no_block();
@@ -47,7 +47,8 @@ std::string ClientSession::get_prompt() {
 }
 
 void ClientSession::send_motd() {
-    auto in_time_t = system_clock::to_time_t(last_action_t);
+    auto in_time_t =
+        system_clock::to_time_t(user_activity.get_current_time_point());
     std::stringstream motd;
     motd
         << "You have connected to the server!\n"
@@ -61,11 +62,6 @@ void ClientSession::send_raw_msg(std::string msg) {
     in_socket->send_buffer(msg.c_str(), msg.size());
 }
 
-void ClientSession::update_last_activity() {
-    std::scoped_lock lck_last_action(mtx_last_action_t);
-    last_action_t = system_clock::now();
-}
-
 void ClientSession::send_scheduled() {
     std::scoped_lock lck(mtx_tx_buffer);
     while (!tx_buffer.empty()) {
@@ -73,13 +69,6 @@ void ClientSession::send_scheduled() {
         tx_buffer.pop();
     }
 }
-
-time_point<system_clock> ClientSession::get_last_action() {
-    std::scoped_lock lck(mtx_last_action_t);
-    return time_point_cast<milliseconds>(last_action_t);
-}
-
-bool ClientSession::is_dead() { return !member_thread.joinable(); }
 
 bool ClientSession::select_identity(std::string username) {
     auto id_it = identity_list.begin();
@@ -102,16 +91,16 @@ bool ClientSession::auth() {
     if (!select_identity(buffer.get_response_str())) {
         return false;
     }
-    update_last_activity();
+    user_activity.update_time_point();
 
     std::string password;
     for (auto tries = 0; tries < invalid_auth_max_tries; tries++) {
         schedule_msg("Password: ");
         send_scheduled();
         buffer.pool_for_respond();
-        update_last_activity();
+        user_activity.update_time_point();
         password = buffer.get_response_str();
-        update_last_activity();
+        user_activity.update_time_point();
 
         if ((*user_identity).check_password(password)) {
             return true;
@@ -133,6 +122,7 @@ void ClientSession::session_function() {
         tmp_stream.str(std::string());
 
         schedule_msg("Access denied!");
+        user_activity -= Server::session_timeout_t;
         return;
     }
 
@@ -161,14 +151,10 @@ void ClientSession::session_function() {
         tmp_stream.str(std::string());
         send_scheduled();
         buffer.pool_for_respond();
-        update_last_activity();
+        user_activity.update_time_point();
 
         dispatcher.run(buffer.get_response_str());
         info(buffer.get_response_str().c_str());
-
-        // Only for DEBUG purposes
-        constexpr duration<int, std::milli> refresh_delay(500);
-        std::this_thread::sleep_for(refresh_delay);
     }
 }
 

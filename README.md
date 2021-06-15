@@ -17,3 +17,8 @@ Usage /server.o [-i IPv4] [-p port] [-c] colors
 2. __echo__ [args] - echo args.
 3. __peers__ - display connected peers.
 4. __msg__ [IPv4] [message] - send message to the provided ip.
+
+## Known bugs
+1. Address already in use should exit the program
+2. Add sigkill 
+3. enter escape does not work

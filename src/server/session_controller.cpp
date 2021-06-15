@@ -77,12 +77,7 @@ void SessionController::cyclic_session_updater() {
         lock_connection_list.lock();
         auto i = established_connections.begin();
         while (i != established_connections.end()) {
-            if ((*i)->is_dead()) {
-                i = established_connections.erase(i);
-                continue;
-            }
-
-            auto delta_ms = calc_time_delta((*i)->get_last_action());
+            auto delta_ms = (*i)->user_activity.elapsed_ms();
             if (delta_ms > session_timeout_t) {
                 (*i)->disconnect("Session timeout.");
                 i = established_connections.erase(i);

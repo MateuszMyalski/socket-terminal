@@ -1,4 +1,6 @@
-#pragma once
+#ifndef UTILS_LOGGER_HPP
+#define UTILS_LOGGER_HPP
+
 #include <arpa/inet.h>
 #include <assert.h>
 
@@ -112,3 +114,4 @@ inline void info(std::stringstream& buffer) { log(buffer, colors::info); }
 inline void warning(const char* buffer) { log(buffer, colors::warning); }
 inline void warning(std::stringstream& buffer) { log(buffer, colors::warning); }
 }
+#endif

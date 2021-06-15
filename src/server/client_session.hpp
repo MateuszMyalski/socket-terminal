@@ -13,9 +13,11 @@
 #include "identity.hpp"
 #include "network-hal/sockets_api.hpp"
 #include "srv_def.hpp"
+#include "utils/timer.hpp"
 
 using namespace NetworkHal;
 namespace Server {
+
 class ClientSession {
    private:
     std::unique_ptr<InSocketAPI> in_socket;
@@ -23,16 +25,12 @@ class ClientSession {
     std::mutex mtx_tx_buffer;
     std::queue<std::string> tx_buffer;
 
-    std::mutex mtx_last_action_t;
-    std::chrono::time_point<std::chrono::system_clock> last_action_t;
-
     std::thread member_thread;
     std::atomic_flag keep_session_alive;
 
     std::vector<Identity> const& identity_list;
     std::vector<Server::Identity>::const_iterator user_identity;
 
-    void update_last_activity();
     void send_raw_msg(std::string msg);
     std::string get_input();
 
@@ -50,10 +48,9 @@ class ClientSession {
     void schedule_msg(std::string msg);
     void send_scheduled();
 
-    std::chrono::time_point<std::chrono::system_clock> get_last_action();
-    bool is_dead();
-
     void disconnect(std::string reason);
+
+    Utils::Timer user_activity;
 };
 }
 #endif
