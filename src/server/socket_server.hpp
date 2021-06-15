@@ -28,7 +28,6 @@ class SocketServer {
     SocketServer(int32_t max_peers, std::vector<Identity> const& identity_list);
     ~SocketServer() = default;
 
-    // std::list<ClientSession&> get_session_list();
     void open(char* server_ip, int32_t server_port, IPv ip_version);
     void pool_for_peers();
     void update();

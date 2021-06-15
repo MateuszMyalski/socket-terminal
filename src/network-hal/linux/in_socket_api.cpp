@@ -11,7 +11,7 @@
 namespace NetworkHal {
 InSocketAPI::InSocketAPI()
     : in_socket_adapter_impl(
-          std::make_unique<InSocketAPI::in_socket_adapter>()){};
+          std::make_unique<InSocketAPI::in_socket_adapter>()) {}
 
 InSocketAPI::~InSocketAPI() = default;
 
@@ -32,6 +32,7 @@ std::string InSocketAPI::repr_ip() {
 void InSocketAPI::send_buffer(const char* in_buffer, int64_t in_buffer_size) {
     if (!is_socket_valid()) {
         Utils::fatal("Invalid socket!");
+        exit(EXIT_FAILURE);
         return;
     }
     int status =
@@ -39,6 +40,7 @@ void InSocketAPI::send_buffer(const char* in_buffer, int64_t in_buffer_size) {
 
     if (status < 0) {
         Utils::fatal(strerror(errno));
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -55,6 +57,7 @@ int64_t InSocketAPI::recv_buffer(T& out_buffer) {
 
     if ((status <= -1) && ((errno != EAGAIN) || (errno != EWOULDBLOCK))) {
         Utils::fatal(strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
     return status;
@@ -63,6 +66,7 @@ int64_t InSocketAPI::recv_buffer(T& out_buffer) {
 void InSocketAPI::set_socket_no_block() {
     if (!is_socket_valid()) {
         Utils::fatal("SocketAPI::set_socket_pool: Invalid socket!");
+        exit(EXIT_FAILURE);
         return;
     }
 
@@ -72,6 +76,7 @@ void InSocketAPI::set_socket_no_block() {
 
     if (fcntl(in_socket_adapter_impl->handler, F_SETFL, O_NONBLOCK) < 0) {
         Utils::fatal(strerror(errno));
+        exit(EXIT_FAILURE);
     }
 }
 

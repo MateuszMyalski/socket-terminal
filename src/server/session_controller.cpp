@@ -8,15 +8,6 @@
 using namespace Utils;
 using namespace std::chrono;
 namespace Server {
-namespace {
-auto calc_time_delta(time_point<system_clock> time_point_ms) {
-    auto now_t = time_point_cast<milliseconds>(system_clock::now());
-    auto delta_ms = now_t - time_point_ms;
-
-    return delta_ms;
-}
-}
-
 SessionController::SessionController(size_t max_peers,
                                      std::vector<Identity> const& identity_list)
     : keep_updating(ATOMIC_FLAG_INIT),

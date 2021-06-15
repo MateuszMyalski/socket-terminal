@@ -10,7 +10,7 @@
 
 namespace NetworkHal {
 SocketAPI::SocketAPI()
-    : socket_adapter_impl(std::make_unique<socket_adapter>()){};
+    : socket_adapter_impl(std::make_unique<socket_adapter>()) {}
 SocketAPI::~SocketAPI() = default;
 
 void SocketAPI::create_socket(IPv ip_version) {
@@ -18,6 +18,7 @@ void SocketAPI::create_socket(IPv ip_version) {
     const int socket_hndl = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_hndl == -1) {
         Utils::fatal(strerror(errno));
+        exit(EXIT_FAILURE);
     }
     socket_adapter_impl->handler = socket_hndl;
     socket_adapter_impl->ip_version = ip_version;
@@ -37,17 +38,20 @@ void SocketAPI::bind_socket(const char* ip_address, uint32_t port) {
         return;
     }
     // TODO(Mateusz) Add IPv6 if
-    struct sockaddr_in address = {.sin_family = AF_INET,
-                                  .sin_port = htons(port)};
+    struct sockaddr_in address {};
+    address.sin_family = AF_INET;
+    address.sin_port = htons(port);
     int status = inet_pton(AF_INET, ip_address, &address.sin_addr);
     if (status < 1) {
         Utils::fatal(strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
     status = bind(socket_adapter_impl->handler, (struct sockaddr*)&address,
                   (socklen_t)sizeof(address));
     if (status < 0) {
         Utils::fatal(strerror(errno));
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -65,13 +69,14 @@ void SocketAPI::listen_socket(int32_t max_connections) {
 
     if (status == -1) {
         Utils::fatal(strerror(errno));
+        exit(EXIT_FAILURE);
     }
 }
 
 std::unique_ptr<InSocketAPI> SocketAPI::accept_connection() {
     auto in_socket = std::make_unique<InSocketAPI>();
     auto adapter = std::move(in_socket->in_socket_adapter_impl);
-    adapter->in_address = {0};
+    adapter->in_address = {};
     adapter->address_len = sizeof(adapter->in_address);
 
     adapter->handler =
@@ -81,6 +86,7 @@ std::unique_ptr<InSocketAPI> SocketAPI::accept_connection() {
     bool is_invalid_status = (adapter->handler == 0) && (errno != EWOULDBLOCK);
     if (is_invalid_status) {
         Utils::fatal(strerror(errno));
+        exit(EXIT_FAILURE);
         return nullptr;
     }
 
@@ -120,6 +126,7 @@ void SocketAPI::set_socket_no_block() {
 
     if (fcntl(socket_adapter_impl->handler, F_SETFL, O_NONBLOCK) < 0) {
         Utils::fatal(strerror(errno));
+        exit(EXIT_FAILURE);
     }
 }
 

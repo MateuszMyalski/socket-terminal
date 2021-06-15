@@ -22,8 +22,6 @@ void SocketServer::open(char* server_ip, int32_t server_port, IPv ip_version) {
     this->server_ip = server_ip;
     this->server_port = server_port;
 
-    // TODO(Mateusz) add Ipv6
-
     std::stringstream log_buff;
     log_buff << "Trying to open server on: " << server_ip << ":" << server_port
              << " ...";
@@ -39,9 +37,7 @@ void SocketServer::open(char* server_ip, int32_t server_port, IPv ip_version) {
     info("Server opened successfully!");
 }
 
-// std::list<ClientSession&> get_session_list() {}
 void SocketServer::pool_for_peers() {
-    // TODO(Mateusz) Pooling vcersion and no blocking cversion
     std::unique_ptr<InSocketAPI> connection;
 
     connection = server_socket.accept_connection();
