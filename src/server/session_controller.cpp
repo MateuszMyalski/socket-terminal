@@ -69,6 +69,11 @@ void SessionController::cyclic_session_updater() {
         auto i = established_connections.begin();
         while (i != established_connections.end()) {
             auto delta_ms = (*i)->user_activity.elapsed_ms();
+            if (delta_ms < std::chrono::milliseconds(0)) {
+                (*i)->disconnect("Session killed.");
+                i = established_connections.erase(i);
+            }
+
             if (delta_ms > session_timeout_t) {
                 (*i)->disconnect("Session timeout.");
                 i = established_connections.erase(i);

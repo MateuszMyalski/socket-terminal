@@ -18,8 +18,8 @@ inline int32_t last_escape_pos(T data) {
     auto rev_it = data.rbegin();
     std::advance(rev_it, 2);
 
-    if (*rev_it == escape_symbol) {
-        return 3;
+    if (*rev_it == escape_char) {
+        return 2;
     }
 
     if (data.size() < 3) {
@@ -27,8 +27,8 @@ inline int32_t last_escape_pos(T data) {
     }
 
     std::advance(rev_it, 3);
-    if (*rev_it == escape_symbol) {
-        return 2;
+    if (*rev_it == escape_char) {
+        return 1;
     }
     return 0;
 }
@@ -82,7 +82,7 @@ bool InputConstructor<buffer_size>::is_eol_escaped() {
         }
     }
 
-    return (escape_cnt % 2) != 0;
+    return escape_cnt == 1;
 }
 
 template <size_t buffer_size>

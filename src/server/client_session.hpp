@@ -29,7 +29,6 @@ class ClientSession {
     std::atomic_flag keep_session_alive;
 
     std::vector<Identity> const& identity_list;
-    std::vector<Server::Identity>::const_iterator user_identity;
 
     void send_raw_msg(std::string msg);
     std::string get_input();
@@ -51,6 +50,7 @@ class ClientSession {
     void disconnect(std::string reason);
 
     Utils::Timer user_activity;
+    std::vector<Server::Identity>::const_iterator user_identity;
 };
 }
 #endif

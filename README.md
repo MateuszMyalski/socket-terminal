@@ -1,24 +1,19 @@
-# STILL WORK IN PROGRESS AFTER TOTAL REBUILD
-# socket-terminal
-Simple telnet server for connecting IOT devices in eg. star topology. Implemented few basic commands. Build for debian tested on WSL. Implemented no message timeout. Peer timeout set to 120s, 30s before disconection warning message will be send. To eddit this param check `./inc/client_session.hpp` file. Each connection works in seperate thread. To construct own commands make use of virtual class in file `./inc/command.hpp` and add it to the main server command dispacher in `main.cpp`.
-```bash
-Usage /server.o [-i IPv4] [-p port] [-c] colors
-```
-# How to compile
-1. Open WSL in server catalog
-2. Run: ``make``
-3. Run: ``./server.o -c``
-4. Default server runs on ``127.0.0.1:8888``
-5. To test it connect with standard linux telnet: `telnet 127.0.0.1 8888`
+# socket-terminal - PoC project
+Simple telnet server for connecting IOT devices in e.g. star topology. Build for Debian tested on WSL2. The server has already implemented few basic commands. CMake build system was used with chance to change socket platform implementation. It is possible to create users with universal commands attached to each profile. Connection works in separate threads, peers after inactivity time are disconnected automatically to free the server slots. By using virtual class, it is possible to implement own commands easily. Each command can have its own alias. Command dispatcher has build in argument parsing algorithms and enter escape system when typing commands. The project cointain also some unit tests for used parsing solutions.
 
+# How to build & run
+```bash
+> mkdir build
+> cd build
+> cmake ..
+> make all
+> make run
+> make run_all_ut
+```
 
 # Commands
-1. __ping__ - response `pong`.
-2. __echo__ [args] - echo args.
-3. __peers__ - display connected peers.
-4. __msg__ [IPv4] [message] - send message to the provided ip.
+1. __disconnect__ - kills the session.
+2. __help__ - displays attached commands to the profile with desciption.
+3. __verion__ - prints out the version.
+4. __DebugCmd__ - prints out received and parsed arguments.
 
-## Known bugs
-1. Address already in use should exit the program
-2. Add sigkill 
-3. enter escape does not work

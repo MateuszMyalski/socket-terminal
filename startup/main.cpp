@@ -13,20 +13,24 @@ constexpr char server_ip[] = "127.0.0.1";
 constexpr int32_t server_port = 8888;
 constexpr int32_t server_max_peers = 5;
 
-// TODO add cosntexpr to some methods
-// TODO template string argumentdst to const char *
-// TODO Address alredy in use falta error exit
-
 int main(int argc, char *argv[]) {
     CommandsMap std_cmd_set;
     std_cmd_set["debug"] =
         std::shared_ptr<Command>{std::make_shared<DebugCmd>()};
     std_cmd_set["dbg"] = std::shared_ptr<Command>{std::make_shared<DebugCmd>()};
+    std_cmd_set["exit"] =
+        std::shared_ptr<Command>{std::make_shared<Disconnect>()};
+    std_cmd_set["help"] = std::shared_ptr<Command>{std::make_shared<Help>()};
 
     CommandsMap expanded_cmd_set;
-    std_cmd_set["version"] =
+    expanded_cmd_set["version"] =
         std::shared_ptr<Command>{std::make_shared<Version>()};
-    std_cmd_set["dbg"] = std::shared_ptr<Command>{std::make_shared<DebugCmd>()};
+    expanded_cmd_set["dbg"] =
+        std::shared_ptr<Command>{std::make_shared<DebugCmd>()};
+    expanded_cmd_set["help"] =
+        std::shared_ptr<Command>{std::make_shared<Help>()};
+    expanded_cmd_set["exit"] =
+        std::shared_ptr<Command>{std::make_shared<Disconnect>()};
 
     std::vector<Identity> identity_list{
         Identity("aaa", "aaa", std_cmd_set),

@@ -9,7 +9,6 @@
 using namespace NetworkHal;
 namespace Server {
 constexpr char escape_char = '\\';
-constexpr char escape_symbol = 27;
 
 template <size_t buffer_size>
 class InputConstructor {

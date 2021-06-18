@@ -23,6 +23,8 @@ class Command {
             string_ctx->append(arg);
         }
     };
+
+    virtual std::string get_man() { return "N/A"; };
 };
 
 typedef std::map<std::string, std::shared_ptr<Command>> CommandsMap;

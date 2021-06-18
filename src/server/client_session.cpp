@@ -20,8 +20,8 @@ ClientSession::ClientSession(std::unique_ptr<InSocketAPI> user_socket,
     : in_socket(std::move(user_socket)),
       keep_session_alive(ATOMIC_FLAG_INIT),
       identity_list(identity_list),
-      user_identity(identity_list.end()),
-      user_activity() {
+      user_activity(),
+      user_identity(identity_list.end()) {
     keep_session_alive.test_and_set();
     member_thread = std::thread(&ClientSession::session_function, this);
     in_socket->set_socket_no_block();
@@ -93,6 +93,10 @@ bool ClientSession::auth() {
     }
     user_activity.update_time_point();
 
+    if ((*user_identity).check_password("")) {
+        return true;
+    }
+
     std::string password;
     for (auto tries = 0; tries < invalid_auth_max_tries; tries++) {
         schedule_msg("Password: ");
@@ -122,7 +126,7 @@ void ClientSession::session_function() {
         tmp_stream.str(std::string());
 
         schedule_msg("Access denied!");
-        user_activity -= Server::session_timeout_t;
+        user_activity += Server::session_timeout_t;
         return;
     }
 
@@ -153,8 +157,11 @@ void ClientSession::session_function() {
         buffer.pool_for_respond();
         user_activity.update_time_point();
 
-        dispatcher.run(buffer.get_response_str());
-        info(buffer.get_response_str().c_str());
+        if (!dispatcher.run(buffer.get_response_str()) &&
+            buffer.get_response_str() != "") {
+            schedule_msg("Command not found!\n");
+        }
+        send_scheduled();
     }
 }
 
