@@ -10,21 +10,9 @@
 
 using namespace Server;
 using namespace Commands;
-constexpr char server_ip[] = "192.168.0.23";
-constexpr int32_t server_port = 8888;
 constexpr int32_t server_max_peers = 5;
 
 int main(int argc, char *argv[]) {
-    CommandsMap all_cmd_set;
-    all_cmd_set["debug"] =
-        std::shared_ptr<Command>{std::make_shared<DebugCmd>()};
-    all_cmd_set["dbg"] = std::shared_ptr<Command>{std::make_shared<DebugCmd>()};
-    all_cmd_set["exit"] =
-        std::shared_ptr<Command>{std::make_shared<Disconnect>()};
-    all_cmd_set["help"] = std::shared_ptr<Command>{std::make_shared<Help>()};
-    all_cmd_set["cpu"] = std::shared_ptr<Command>{std::make_shared<CPUUsage>()};
-    all_cmd_set["ram"] = std::shared_ptr<Command>{std::make_shared<RAMUsage>()};
-
     CommandsMap debug_cmd_set;
     debug_cmd_set["version"] =
         std::shared_ptr<Command>{std::make_shared<Version>()};
@@ -34,23 +22,32 @@ int main(int argc, char *argv[]) {
     debug_cmd_set["exit"] =
         std::shared_ptr<Command>{std::make_shared<Disconnect>()};
 
-    CommandsMap cpu_cmd_set;
-    cpu_cmd_set["cpu"] = std::shared_ptr<Command>{std::make_shared<CPUUsage>()};
-    debug_cmd_set["help"] = std::shared_ptr<Command>{std::make_shared<Help>()};
-    cpu_cmd_set["exit"] =
+    CommandsMap stat_cmd_set;
+    stat_cmd_set["cpu"] =
+        std::shared_ptr<Command>{std::make_shared<CPUUsage>()};
+    stat_cmd_set["ram"] =
+        std::shared_ptr<Command>{std::make_shared<RAMUsage>()};
+    stat_cmd_set["help"] = std::shared_ptr<Command>{std::make_shared<Help>()};
+    stat_cmd_set["exit"] =
         std::shared_ptr<Command>{std::make_shared<Disconnect>()};
 
-    CommandsMap ram_cmd_set;
-    ram_cmd_set["ram"] = std::shared_ptr<Command>{std::make_shared<RAMUsage>()};
-    ram_cmd_set["help"] = std::shared_ptr<Command>{std::make_shared<Help>()};
-    ram_cmd_set["exit"] =
+    CommandsMap thermo_cmd_set;
+    thermo_cmd_set["help"] = std::shared_ptr<Command>{std::make_shared<Help>()};
+    thermo_cmd_set["exit"] =
         std::shared_ptr<Command>{std::make_shared<Disconnect>()};
+    thermo_cmd_set["temp0"] =
+        std::shared_ptr<Command>{std::make_shared<TempZone>(0)};
+    thermo_cmd_set["temp1"] =
+        std::shared_ptr<Command>{std::make_shared<TempZone>(1)};
+    thermo_cmd_set["temp2"] =
+        std::shared_ptr<Command>{std::make_shared<TempZone>(2)};
+    thermo_cmd_set["temp3"] =
+        std::shared_ptr<Command>{std::make_shared<TempZone>(3)};
 
     std::vector<Identity> identity_list{
-        Identity("admin", "12345", all_cmd_set),
-        Identity("DBGuser1", "dbg", debug_cmd_set),
-        Identity("user2", "User2", ram_cmd_set),
-        Identity("user3", "User3", cpu_cmd_set)};
+        Identity("dbg", "dbg", debug_cmd_set),
+        Identity("stat_user", "stats", stat_cmd_set),
+        Identity("thermo_user", "thermo", thermo_cmd_set)};
 
     SocketServer my_server(server_max_peers, identity_list);
 

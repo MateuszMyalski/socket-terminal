@@ -16,5 +16,14 @@ class RAMUsage : public Command {
     std::string get_man();
 };
 
+class TempZone : public Command {
+    int zone_number = 0;
+
+   public:
+    TempZone(int zone_no) : zone_number(zone_no){};
+    void execute(void* ctx, const std::vector<std::string>& args);
+    std::string get_man();
+};
+
 }
 #endif
